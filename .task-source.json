@@ -1,0 +1,150 @@
+{
+  "task_source_schema_version": 1,
+  "cc_feedback_profile": "cc-feedback-2611",
+  "project_domain": "游戏、图形与多媒体",
+  "project_subdirection": "音视频处理",
+  "supported_task_types": [
+    "Bugfix",
+    "代码重构",
+    "质量保障"
+  ],
+  "type_coverage": {
+    "功能开发": {
+      "status": "unsupported",
+      "reason": "当前只评估 Bugfix 基线，尚未完成该类型容量审核"
+    },
+    "Bugfix": {
+      "status": "supported",
+      "reason": "已核查 SQLite 时间线修订、渲染任务持久化和编码生命周期，可在隔离分支设计跨职责事务回归；具体缺陷仍须独立准入"
+    },
+    "代码重构": {
+      "status": "supported",
+      "reason": "编码参数构造、时间线持久化与 HTTP 边界有真实现有函数，可保持媒体行为进行重构"
+    },
+    "功能优化": {
+      "status": "unsupported",
+      "reason": "当前只评估 Bugfix 基线，尚未完成该类型容量审核"
+    },
+    "依赖升级与迁移": {
+      "status": "unsupported",
+      "reason": "当前只评估 Bugfix 基线，尚未完成该类型容量审核"
+    },
+    "质量保障": {
+      "status": "supported",
+      "reason": "已有公开素材登记、片段录入及渲染入口，具备可生成媒体和 SQLite 并发边界"
+    },
+    "项目维护": {
+      "status": "unsupported",
+      "reason": "当前只评估 Bugfix 基线，尚未完成该类型容量审核"
+    },
+    "技术讨论": {
+      "status": "unsupported",
+      "reason": "当前只评估 Bugfix 基线，尚未完成该类型容量审核"
+    },
+    "问题排查与诊断": {
+      "status": "unsupported",
+      "reason": "当前只评估 Bugfix 基线，尚未完成该类型容量审核"
+    },
+    "部署运维": {
+      "status": "unsupported",
+      "reason": "当前只评估 Bugfix 基线，尚未完成该类型容量审核"
+    },
+    "泛Agent需求": {
+      "status": "unsupported",
+      "reason": "当前只评估 Bugfix 基线，尚未完成该类型容量审核"
+    }
+  },
+  "prompt_contract": {
+    "schema_version": 1,
+    "mode": "baseline-only",
+    "baseline_tier": "standard",
+    "generation_scope": {
+      "mode": "explicit",
+      "task_types": [
+        "Bugfix"
+      ],
+      "basis": "用户需要适合后续困难级 Bugfix 的项目基线"
+    },
+    "minimum_active_prompts": {
+      "Bugfix": 0
+    },
+    "minimum_anchors": {}
+  },
+  "entities": [
+    {
+      "id": "asset",
+      "label": "asset",
+      "relations": [],
+      "invariants": [
+        "素材内容须保持一致"
+      ]
+    },
+    {
+      "id": "project",
+      "label": "project",
+      "relations": [],
+      "invariants": [
+        "修订随片段变更"
+      ]
+    },
+    {
+      "id": "clip",
+      "label": "clip",
+      "relations": [],
+      "invariants": [
+        "片段端点在素材范围内"
+      ]
+    },
+    {
+      "id": "render",
+      "label": "render",
+      "relations": [],
+      "invariants": [
+        "快照保留提交时修订"
+      ]
+    }
+  ],
+  "state_machines": [
+    {
+      "subject": "render",
+      "states": [
+        "running",
+        "completed",
+        "failed"
+      ],
+      "transitions": [
+        "running->completed",
+        "running->failed"
+      ],
+      "invariants": [
+        "完成后记录输出"
+      ]
+    }
+  ],
+  "capability_families": [
+    {
+      "family": "导出与冻结",
+      "occupied_by": [
+        "render snapshot"
+      ],
+      "available": true
+    }
+  ],
+  "extension_seams": [
+    {
+      "id": "render-plan",
+      "anchor": "planner.prepare",
+      "entry": "POST /renders",
+      "distinct_outcome": "新的渲染计划",
+      "mechanism": "snapshot_consistency"
+    }
+  ],
+  "tension_points": [
+    {
+      "workflow_id": "media-render",
+      "description": "冻结修订与源文件保持一致，同时避免覆盖已有产物",
+      "observable_failure": "输出使用变更后的素材或覆盖现有文件"
+    }
+  ],
+  "prompt_anchors": []
+}

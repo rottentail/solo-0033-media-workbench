@@ -1,0 +1,81 @@
+{
+  "project_name": "solo-0033-media-workbench",
+  "project_shape": "backend",
+  "modules": [
+    {
+      "id": "assets",
+      "path": "mediaworkbench/assets.py",
+      "responsibility": "assets"
+    },
+    {
+      "id": "db",
+      "path": "mediaworkbench/db.py",
+      "responsibility": "db"
+    },
+    {
+      "id": "encoder",
+      "path": "mediaworkbench/encoder.py",
+      "responsibility": "encoder"
+    },
+    {
+      "id": "planner",
+      "path": "mediaworkbench/planner.py",
+      "responsibility": "planner"
+    },
+    {
+      "id": "renders",
+      "path": "mediaworkbench/renders.py",
+      "responsibility": "renders"
+    },
+    {
+      "id": "server",
+      "path": "mediaworkbench/server.py",
+      "responsibility": "server"
+    },
+    {
+      "id": "timeline",
+      "path": "mediaworkbench/timeline.py",
+      "responsibility": "timeline"
+    },
+    {
+      "id": "tools",
+      "path": "mediaworkbench/tools.py",
+      "responsibility": "tools"
+    }
+  ],
+  "workflows": [
+    {
+      "id": "media-render",
+      "entry": "/renders",
+      "steps": [
+        "冻结时间线与校验源文件",
+        "归一化音视频并拼接",
+        "写出产物和记录状态"
+      ],
+      "success": "返回完成的 MP4",
+      "failure": "返回错误并记录失败",
+      "module_ids": [
+        "server",
+        "db",
+        "timeline",
+        "planner",
+        "assets",
+        "encoder",
+        "renders",
+        "tools"
+      ]
+    }
+  ],
+  "complexity": {
+    "mechanisms": [
+      "媒体探测",
+      "内容指纹",
+      "时间线修订",
+      "渲染快照",
+      "音画归一化",
+      "片段拼接",
+      "原子输出写入",
+      "失败状态记录"
+    ]
+  }
+}
