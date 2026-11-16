@@ -138,6 +138,21 @@
       "id": "retime_render",
       "path": "mediaworkbench/retime_render.py",
       "responsibility": "逐次音视频流单次物化、复用存储与输出采样"
+    },
+    {
+      "id": "collab_spans",
+      "path": "mediaworkbench/collab_spans.py",
+      "responsibility": "源区间拆分、稳定谱系选择与间隙定位"
+    },
+    {
+      "id": "collab_merge",
+      "path": "mediaworkbench/collab_merge.py",
+      "responsibility": "旧视图编辑变换、选择性逆操作和冲突合并"
+    },
+    {
+      "id": "collab_store",
+      "path": "mediaworkbench/collab_store.py",
+      "responsibility": "短事务提交、持久序列树和原始幂等回执"
     }
   ],
   "workflows": [
@@ -328,6 +343,26 @@
         "retime_render",
         "transition_render",
         "media_sources",
+        "db",
+        "server"
+      ]
+    },
+    {
+      "id": "collaborative-edit",
+      "name": "多人错时编辑与选择性撤销",
+      "entry": "POST /projects/{id}/edits",
+      "steps": [
+        "按旧修订解析所选剪入源区间",
+        "将意图重放到当前序列并检测依赖冲突",
+        "原子保存版本树、逆操作和幂等回执"
+      ],
+      "success": "无冲突合并保留双方意图，回执重放稳定且历史容量有界",
+      "failure": "真正内容冲突整批拒绝，不能撤销他人编辑",
+      "module_ids": [
+        "collab_spans",
+        "collab_merge",
+        "collab_store",
+        "timeline",
         "db",
         "server"
       ]

@@ -56,6 +56,7 @@ def replace(conn, project_id, clips, expected_revision):
             if not isinstance(clip, dict):
                 raise ValueError('invalid clip')
             _validate(conn, clip['asset_id'], clip['start_ms'], clip['end_ms'], clip.get('gain', 1))
+        conn.execute('DELETE FROM edit_heads WHERE project_id=?', (project_id,))
         conn.execute('DELETE FROM clips WHERE project_id=?', (project_id,))
         conn.executemany(
             'INSERT INTO clips(project_id,asset_id,start_ms,end_ms,position,gain) VALUES (?,?,?,?,?,?)',

@@ -5,7 +5,7 @@ import os
 import sqlite3
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse
-from . import assets, db, timeline, renders, worker, jobs
+from . import assets, db, timeline, renders, worker, jobs, collab_store
 from . import audio_layers, mix_plan, mix_render
 from . import media_sources, proxies, relinking, proxy_store
 from . import transition_plan, transition_render, retime_plan, retime_render
@@ -28,6 +28,8 @@ class Handler(BaseHTTPRequestHandler):
                     result = timeline.snapshot(conn, int(path[1]))
                 elif len(path) == 2 and path[0] in ('renders', 'render-jobs'):
                     result = renders.get(conn, int(path[1]))
+                elif len(path) == 3 and path[0] == 'projects' and path[2] == 'edits':
+                    result = collab_store.view(conn, int(path[1]))
                 elif len(path) == 3 and path[0] == 'projects' and path[2] == 'audio':
                     result = audio_layers.snapshot(conn, int(path[1]))
                 elif len(path) == 2 and path[0] == 'mix-plans':
@@ -71,6 +73,9 @@ class Handler(BaseHTTPRequestHandler):
                         data['start_ms'], data['end_ms'], data.get('gain', 1))
                 elif len(path) == 3 and path[0] == 'projects' and path[2] == 'timeline':
                     result = timeline.replace(conn, int(path[1]), data['clips'], data['expected_revision'])
+                elif len(path) == 3 and path[0] == 'projects' and path[2] == 'edits':
+                    result = collab_store.commit(conn, int(path[1]), data['actor'], data['request_id'],
+                        data.get('base_revision'), data.get('actions'), data.get('undo_request'))
                 elif len(path) == 3 and path[0] == 'projects' and path[2] == 'voices':
                     result = audio_layers.replace(conn, int(path[1]), data['voices'], data['expected_revision'])
                 elif path == ['mix-plans']:

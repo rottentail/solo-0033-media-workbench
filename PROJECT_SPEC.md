@@ -78,3 +78,11 @@ Explicit byte-budget collection tracks published proxy versions in additive SQLi
 Saved per-occurrence speed curves vary linearly in trimmed source position. Integration of inverse speed gives exact programme duration; inverse integration maps programme samples and video midpoints back to source positions. Stereo interpolation, per-occurrence trims and gains, final-only frame padding, original identity checks and once-per-stream disk materialization remain part of the delivery contract.
 
 Retime curves also support one to three alternating forward/reverse passes of the same trimmed action, preserving source-position speed and gain while decoding each occurrence stream once. Reverse passes revisit materialized source data with bounded reads.
+
+### 协作时间线
+
+协作接口在本机可信操作员范围内提供按actor隔离的请求幂等、旧视图区间合并、
+批次原子提交和本人选择性撤销。actor为客户端传入身份，不构成外部用户鉴权。
+稳定的剪入身份加源区间与修改标记支持拆分后的选择定位，内容变更引起明确冲突。
+版本树保存每次已提交的序列，节点以内容寻址共享，避免长时间线短编辑的快照放大；
+回执和逆操作与时间线同事务保存。导出始终读取接下时的不可变快照。

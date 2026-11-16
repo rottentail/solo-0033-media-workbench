@@ -208,3 +208,25 @@ is independently checked in an OrbStack container capped at 192 MiB. This is
 sample-peak protection, not a broadcast loudness or intersample-peak limiter.
 Existing output names and symlinks are preserved. No live audio playback,
 background mixing scheduler or network source reader is provided.
+
+## 协作编辑与选择性撤销
+
+`GET /projects/{id}/edits` 返回含修订和剪入谱系的编辑视图。
+`POST /projects/{id}/edits` 接收 `actor`、`request_id`、`base_revision` 和 `actions`。
+操作包含：`delete`（`start_ms`、`end_ms`）、`move`（同上及原视图坐标的 `to_ms`）、
+`insert`（`at_ms`、`clips`，片段属性与普通时间线一致）。一批内后续操作的坐标基于
+前序操作完成后的视图；每批最多32操作，当前时间线最多512次剪入。
+
+服务将旧视图中的选择解析为具体剪入的源区间，再合并到当前状态。互不相交的删除或插入
+可合并；目标内容被删去、替换或移走时整批冲突，不自动选择“相似”素材。
+跨拆分保留剪入身份，重复素材的每次剪入彼此独立。插入间隙的两个邻点均保留时，
+插入在右邻点之前；仅剩一个邻点时跟随该邻点；两者均消失时拒绝。
+整份旧式时间线替换会开启新的谱系，旧协作视图应重新打开。
+
+相同项目、操作者和请求标识的相同请求返回原始提交回执，不重复编辑，也不返回后来版本；
+同一标识换内容则拒绝。撤销请求使用相同入口和 `actor`、新 `request_id`、`undo_request`，
+只撤回该操作者先前那批操作。撤销保留无关的后来编辑；依赖内容已改变则整批拒绝。
+历史采用内容寻址的持久序列树，共享未变化子树，回执仅保存修订引用；不为每次短编辑
+复制512次剪入的完整历史。设计容量为512剪入、一天一万批短编辑的协作历史不超过64 MiB；
+同日旧版本合并、回执重放和未冲突撤销可用。当前未自动过期历史。
+数据库提交仅覆盖短编辑事务，媒体任务仍冻结已提交快照后在事务外执行。
