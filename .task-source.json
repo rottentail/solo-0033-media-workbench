@@ -303,6 +303,15 @@
         "spatial_render.write_programme"
       ],
       "available": true
+    },
+    {
+      "family": "原片逐词字幕与受限设备整段排版",
+      "occupied_by": [
+        "caption_words.project",
+        "caption_layout.solve",
+        "caption_plan.export"
+      ],
+      "available": true
     }
   ],
   "extension_seams": [
@@ -389,6 +398,13 @@
       "entry": "POST /spatial-plans",
       "distinct_outcome": "按冻结姿态的最短球面轨迹旋转AmbiX/FuMa一阶声场并保持声压与方向能量",
       "mechanism": "quaternion_geodesic_passive_foa_streaming"
+    },
+    {
+      "id": "caption-delivery",
+      "anchor": "caption_plan.create",
+      "entry": "POST /caption-plans",
+      "distinct_outcome": "逐词原片字幕在重复剪入内独立投影并按全片阅读负荷分配设备条数，冻结预览与WebVTT一致",
+      "mechanism": "occurrence_projection_bottleneck_segmentation_frozen_cues"
     }
   ],
   "tension_points": [
@@ -446,6 +462,11 @@
       "workflow_id": "listener-soundfield",
       "description": "姿态平滑与声场能量不变须同时成立，不能以线性通道交叉淡化换取平滑；分块不应改变全局轨迹",
       "observable_failure": "转头绕远、声场塌缩、上下左右混淆或块边界朝向回跳"
+    },
+    {
+      "workflow_id": "caption-delivery",
+      "description": "有限条数和两行宽度不能以漏词或拖延到下一镜头满足；局部均衡会牺牲全片最难读字幕，字幕校对和剪辑继续时交付仍需保持已接下的版次",
+      "observable_failure": "重复镜头丢词、裁切错时、前段耗尽条数、后段赶读、预览与交付文本时间漂移"
     }
   ],
   "prompt_anchors": []

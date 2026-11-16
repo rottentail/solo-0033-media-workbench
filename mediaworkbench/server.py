@@ -12,6 +12,7 @@ from . import transition_plan, transition_render, retime_plan, retime_render
 from . import multicam_plan, multicam_render
 from . import spatial_plan, spatial_render
 from . import bundle_export
+from . import caption_words, caption_plan
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -47,6 +48,10 @@ class Handler(BaseHTTPRequestHandler):
                     result = multicam_plan.get(conn, int(path[1]))
                 elif len(path) == 2 and path[0] == 'spatial-plans':
                     result = spatial_plan.get(conn, int(path[1]))
+                elif len(path) == 2 and path[0] == 'caption-plans':
+                    result = caption_plan.get(conn, int(path[1]))
+                elif len(path) == 3 and path[0] == 'assets' and path[2] == 'transcript':
+                    result = caption_words.get(conn, int(path[1]))
                 else:
                     return self.respond(404, {'error': 'not found'})
             self.respond(200, result)
@@ -65,6 +70,16 @@ class Handler(BaseHTTPRequestHandler):
             with closing(db.connect(self.server.database)) as conn:
                 if path == ['assets']:
                     result = assets.register(conn, data['path'])
+                elif len(path) == 3 and path[0] == 'assets' and path[2] == 'transcript':
+                    result = caption_words.replace(conn, int(path[1]), data['words'], data['expected_revision'])
+                elif path == ['caption-plans']:
+                    result = caption_plan.create(conn, data['project_id'], data.get('width',32),
+                        data.get('max_cues',32), data.get('minimum_ms',400),
+                        data.get('maximum_ms',5000), data.get('hold_ms',500))
+                elif len(path) == 3 and path[0] == 'caption-plans' and path[2] == 'preview':
+                    result = caption_plan.preview(conn, int(path[1]), data['at_ms'])
+                elif len(path) == 3 and path[0] == 'caption-plans' and path[2] == 'export':
+                    result = caption_plan.export(conn, int(path[1]), data['destination'])
                 elif path == ['offline-bundles']:
                     result = bundle_export.create(conn, data['projects'], data['max_media_bytes'], data['destination'])
                 elif path == ['offline-bundle-sets']:

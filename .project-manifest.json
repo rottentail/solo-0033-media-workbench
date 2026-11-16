@@ -183,6 +183,21 @@
       "id": "spatial_render",
       "path": "mediaworkbench/spatial_render.py",
       "responsibility": "单次四声道解码与全局采样时钟流式交付"
+    },
+    {
+      "id": "caption_words",
+      "path": "mediaworkbench/caption_words.py",
+      "responsibility": "原片逐词字幕的修订与剪入实例时间投影"
+    },
+    {
+      "id": "caption_layout",
+      "path": "mediaworkbench/caption_layout.py",
+      "responsibility": "两行设备容量下的整节目字幕阅读速率最优分段"
+    },
+    {
+      "id": "caption_plan",
+      "path": "mediaworkbench/caption_plan.py",
+      "responsibility": "字幕冻结、逐时预览和WebVTT一致交付"
     }
   ],
   "workflows": [
@@ -396,6 +411,27 @@
         "db",
         "server"
       ]
+    },
+    {
+      "id": "caption-delivery",
+      "name": "原片逐词字幕到离线节目字幕交付",
+      "entry": "POST /assets/{id}/transcript; POST /caption-plans",
+      "steps": [
+        "原子修订原片逐词字幕",
+        "捕获时间线和字幕快照并逐次映射",
+        "在设备宽度和条数限制下全局优化阅读速率",
+        "冻结预览并原子交付WebVTT"
+      ],
+      "success": "重复剪入和裁切保持逐词时间关系，完整节目在条数上限内使最坏阅读速率最小，预览与交付跨重开一致",
+      "failure": "陈旧字幕更新、无可行完整排版、损坏方案和目标冲突明确拒绝",
+      "module_ids": [
+        "caption_words",
+        "caption_layout",
+        "caption_plan",
+        "timeline",
+        "db",
+        "server"
+      ]
     }
   ],
   "complexity": {
@@ -421,7 +457,11 @@
       "simultaneous_transition_coverage",
       "linear_light_compositing",
       "exact_av_clock",
-      "bounded_frame_compositing"
+      "bounded_frame_compositing",
+      "occurrence_local_word_projection",
+      "bottleneck_caption_segmentation",
+      "unicode_display_cells",
+      "immutable_caption_delivery"
     ]
   }
 }

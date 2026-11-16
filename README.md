@@ -353,3 +353,59 @@ independent of quaternion sign. `original_poses`, retained `poses`, and
 first tuple of retained input indices (across all allowed node counts).
 Both audition and full delivery consume the retained frozen trajectory, so
 an editor hears exactly what the capacity-limited device will receive.
+
+## Source transcripts and bounded caption delivery
+
+`GET/POST /assets/{id}/transcript` reads/replaces an original's transcript.
+POST takes `expected_revision` (initially zero) and `words`, up to 128 ordered,
+nonoverlapping `{start_ms,end_ms,text}` atoms within that original. An atom is
+an indivisible printed word/phrase without whitespace or control characters;
+Unicode text is NFC-normalized. Chinese phrases can be separate atoms without
+requiring a language tokenizer. Text is literal, including `<` and `&`.
+A stale replacement fails atomically. This workflow only edits transcripts;
+it neither reads media bytes nor changes the ordinary timeline revision.
+
+`POST /caption-plans` accepts `project_id`, `width` (4–80 display cells,
+default 32), `max_cues` (1–128, default 32), `minimum_ms` (default 400),
+`maximum_ms` (default 5000, up to 10000), and `hold_ms` (0–2000, default 500).
+The plan captures one consistent timeline/transcript view. Original volumes
+may be offline. Every *fully contained* word in every trimmed occurrence is
+projected from source milliseconds to programme milliseconds; incomplete words
+cut by either trim endpoint are omitted. Repeated uses of an original remain
+separate. A plan supports ten minutes and at most 128 projected words. Clips
+without transcripts remain silent gaps in the caption programme.
+
+Every projected word must appear exactly once in order. A cue contains up to
+32 successive atoms from one occurrence, on at most two lines. Atoms never
+split. One space separates atoms on each line. Combining marks occupy zero
+cells, Unicode East Asian W/F characters occupy two, other characters one.
+This is a portable display-cell contract, not a claim of proportional-font
+pixel measurement or automatic language-aware typesetting.
+
+Each cue starts with its first spoken word and ends at the earliest of its
+last word's end plus `hold_ms`, the next projected word's start, its own clip's
+end, and its first word's start plus `maximum_ms`. It must fully cover its last
+word and last at least `minimum_ms`. A cue may use a silent gap for reading but
+never crosses its clip boundary or covers a later word. These are exact integer
+milliseconds. Empty projected transcripts produce an empty valid caption plan.
+An impossible complete layout fails without saving a partial plan.
+
+The whole programme minimizes its worst cue reading rate (display cells of
+word text per second, excluding joining spaces) subject to the cue-count cap.
+Ties minimize total squared unused cells across the chosen nonempty lines,
+then cue count, then the tuple of cue-ending word indexes; line-layout ties
+prefer the earliest line split. It does not optimize each clip independently
+or merely average reading rates. Exact rational rates are returned as
+`worst_rate: [numerator,denominator]` along with `raggedness`, projected tokens
+and final cues. Optimization runs outside the database writer transaction.
+
+`GET /caption-plans/{id}` reads the saved, checksummed plan.
+`POST /caption-plans/{id}/preview` with `at_ms` returns its active cues on
+half-open time intervals. `POST /caption-plans/{id}/export` with a new
+`destination` writes portable UTF-8 WebVTT using those same cues, millisecond
+timestamps and escaped literal text. No original media, catalogue lookup or
+subtitle regeneration is required by a caption player. Saved plans retain
+original timeline/transcript revisions across later editing and service restart;
+new plans use the new versions. Failed exports remove private temporary files,
+and existing targets including dangling symlinks remain untouched. This caption
+workflow neither burns text into video nor changes ordinary media exports.
