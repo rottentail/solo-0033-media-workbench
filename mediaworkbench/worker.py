@@ -6,7 +6,7 @@ import shutil
 import tempfile
 import time
 import uuid
-from . import encoder, jobs, planner, publication
+from . import encoder, jobs, planner, publication, media_sources
 from .segment_cache import SegmentCache, digest, verified
 
 
@@ -25,7 +25,7 @@ def run(conn, render_id, owner=None, lease_seconds=30):
 
     try:
         job = jobs.get(conn, render_id)
-        snapshot = json.loads(job['snapshot'])
+        snapshot = media_sources.bind(conn, json.loads(job['snapshot']), tick=tick)
         planner.verify_sources(snapshot, tick)
         tick()
         # An earlier process may have linked its durable intent before dying.

@@ -88,6 +88,21 @@
       "id": "mix_render",
       "path": "mediaworkbench/mix_render.py",
       "responsibility": "磁盘暂存、定长块混音和整节目统一峰值补偿"
+    },
+    {
+      "id": "media_sources",
+      "path": "mediaworkbench/media_sources.py",
+      "responsibility": "不可变素材身份与原片/代理位置分离、用途选择"
+    },
+    {
+      "id": "proxies",
+      "path": "mediaworkbench/proxies.py",
+      "responsibility": "非阻塞代理准备、请求代次发布与离线预览"
+    },
+    {
+      "id": "relinking",
+      "path": "mediaworkbench/relinking.py",
+      "responsibility": "批量原片内容核验与短事务修订回连"
     }
   ],
   "workflows": [
@@ -187,6 +202,33 @@
         "mix_plan",
         "mix_render"
       ]
+    },
+    {
+      "id": "offline-relink",
+      "name": "离线代理预览与原片批量回连",
+      "entry": "POST /assets/{id}/proxy; POST /asset-relinks; POST /projects/{id}/preview",
+      "steps": [
+        "保留可用代理并分配新请求代次",
+        "在事务外准备及校验不可变代理文件",
+        "将当前代次代理发布供离线预览",
+        "批量校验原片身份并按位置修订原子回连",
+        "已冻结任务按原身份解析新的原片位置"
+      ],
+      "success": "原片离线仍可预览，交付只用相同内容的原片；旧请求不覆盖新代理或已接受回连",
+      "failure": "错误原片、陈旧回连整批拒绝；失败刷新保留旧代理；准备失败清理私有文件",
+      "verification": "python3 -m mediaworkbench.check --workflow sources",
+      "module_ids": [
+        "media_sources",
+        "proxies",
+        "relinking",
+        "assets",
+        "db",
+        "timeline",
+        "planner",
+        "jobs",
+        "worker",
+        "server"
+      ]
     }
   ],
   "complexity": {
@@ -204,7 +246,11 @@
       "piecewise_lower_envelope",
       "bounded_pcm_streaming",
       "global_peak_compensation",
-      "immutable_mix_plan"
+      "immutable_mix_plan",
+      "logical_asset_relocation",
+      "rendition_trust_separation",
+      "generation_publication",
+      "optimistic_batch_relink"
     ]
   }
 }

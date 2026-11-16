@@ -1,5 +1,25 @@
 # Media Workbench product specification
 
+The source-location workflow separates an asset's immutable original content
+identity from its movable original path and optional immutable audition proxy.
+Proxy preparation reserves publication precedence in a short transaction,
+performs FFmpeg and media verification outside the writer lock, then installs
+only the current generation's receipt. A previous accepted proxy remains
+usable throughout a pending or failed refresh. Publication never rewrites the
+original location. Unaccepted proxy files and build directories are removed.
+
+Batch reconnection probes and hashes candidates without a writer transaction,
+then checks every location revision and candidate file stamp before updating
+any original paths. Wrong bytes and stale requests have no partial batch
+effects. Location revisions are independent of timeline edit revisions and
+proxy generations. Offline previews may use a receipt-verified proxy; delivery
+must resolve and verify the original identity. Pending pre-move jobs and saved
+mix plans resolve newly accepted original locations without changing their
+frozen editing decisions. Audition proxies preserve duration and timing and
+cannot be used as replacement originals. This is local trusted-operator media
+management; hostile concurrent file mutation and power-loss durability are
+outside its guarantee.
+
 The service lets a trusted media operator assemble an ordered sequence of independently trimmed and weighted video occurrences, export a normalized MP4, and recover an interrupted export without changing its accepted content. The product is an audio/video processing backend with a loopback JSON HTTP interface.
 
 The source asset records the media path, SHA-256 and probed streams. A project owns a revision and ordered clip occurrences; two occurrences can reference the same asset without sharing trim or gain. Atomic whole-timeline replacement requires the expected revision. Appends acquire a short SQLite write transaction so concurrent editors receive distinct positions and revisions. Export submission takes a consistent short read view and saves a separate immutable plan.

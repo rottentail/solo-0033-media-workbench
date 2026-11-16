@@ -2,7 +2,7 @@
 import json
 import math
 import time
-from . import planner, timeline
+from . import planner, timeline, media_sources
 from .db import write
 
 
@@ -29,7 +29,7 @@ def get(conn, render_id):
 
 
 def enqueue(conn, project_id, destination, cache_root):
-    frozen = planner.prepare(timeline.snapshot(conn, project_id))
+    frozen = planner.prepare(media_sources.bind(conn, timeline.snapshot(conn, project_id)))
     with write(conn):
         cursor = conn.execute(
             'INSERT INTO renders(project_id,revision,status,snapshot) VALUES (?,?,?,?)',

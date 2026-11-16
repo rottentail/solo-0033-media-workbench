@@ -240,6 +240,15 @@
         "mix_render.blocks"
       ],
       "available": true
+    },
+    {
+      "family": "离线素材代理与原片回连",
+      "occupied_by": [
+        "media_sources.select",
+        "proxies.create",
+        "relinking.replace"
+      ],
+      "available": true
     }
   ],
   "extension_seams": [
@@ -277,6 +286,13 @@
       "entry": "POST /mix-plans",
       "distinct_outcome": "源裁切、增益后活动、交叠曲线和整段响度一致的配音混音",
       "mechanism": "waveform_envelope_streaming"
+    },
+    {
+      "id": "offline-relink",
+      "anchor": "relinking.replace",
+      "entry": "POST /asset-relinks",
+      "distinct_outcome": "离线预览与批量原片重连在代理准备期间保持身份、用途与位置修订一致",
+      "mechanism": "rendition_identity_relocation"
     }
   ],
   "tension_points": [
@@ -299,6 +315,11 @@
       "workflow_id": "voice-ducking",
       "description": "单次解码和有限内存下还要保留整节目全局峰值关系及已保存避让曲线",
       "observable_failure": "长节目OOM、块间响度跳变、迟到峰值削顶或静音处错误避让"
+    },
+    {
+      "workflow_id": "offline-relink",
+      "description": "代理更新期间离线编辑需继续，交付仍须核验原片且批量重连不被迟到请求回滚",
+      "observable_failure": "代理被误作原片交付、迟到代理改回旧路径或失败批次留下部分重连"
     }
   ],
   "prompt_anchors": []

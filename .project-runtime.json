@@ -22,6 +22,10 @@
     {
       "workflow_id": "voice-ducking",
       "command": "python3 -m mediaworkbench.check --workflow mix"
+    },
+    {
+      "workflow_id": "offline-relink",
+      "command": "python3 -m mediaworkbench.check --workflow sources"
     }
   ]
 }

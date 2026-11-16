@@ -8,7 +8,7 @@ from pathlib import Path
 import sys
 import tempfile
 import wave
-from . import audio_signal, mix_plan
+from . import audio_signal, mix_plan, media_sources
 
 BLOCK = 4096
 
@@ -93,6 +93,8 @@ def encode(pcm, scale):
 
 def render(conn, plan_id, destination):
     plan = mix_plan.get(conn, plan_id)
+    for collection in ('beds', 'voices'):
+        plan[collection] = [media_sources.select(conn, clip) for clip in plan[collection]]
     destination = Path(destination).expanduser().absolute()
     destination = destination.parent.resolve() / destination.name
     if os.path.lexists(destination):

@@ -1,5 +1,38 @@
 # Media Workbench
 
+## Offline proxy editing and original reconnection
+
+Video assets can have a 320×180 audition proxy. `POST /assets/{id}/proxy`
+with `{"directory":"/existing/proxy-store"}` prepares and verifies a complete
+proxy outside the database writer transaction. A new request reserves a new
+generation; a late older request cannot replace the newer one. The last good
+proxy remains usable during a refresh and after a failed refresh. Proxy files
+are immutable and earlier accepted files are retained so in-flight previews
+can finish; proxy-store retention is managed by the operator.
+
+`POST /projects/{id}/preview` with `{"destination":"/new/preview.mp4"}`
+renders the current timeline using verified proxies, falling back to verified
+originals when a proxy is absent or damaged. This supports editing with the
+original volume offline. A preview is an audition and does not become a
+deliverable render job. Existing destination paths remain protected.
+
+`GET /assets/{id}` exposes the original identity, current original path,
+`link_revision`, and proxy generation/receipt. `POST /asset-relinks` accepts
+`{"locations":[{"asset_id":1,"path":"/new/original.mp4","expected_revision":0}]}`.
+Every selected file must contain the exact registered original bytes. All
+members are inspected before a short atomic transaction; one wrong original,
+stale location revision, or changed candidate rejects the whole batch. Media
+probing and hashing leave other editing requests free to proceed. Reconnecting
+the same original changes only its location revision, leaving clip edits,
+asset identity and accepted proxy receipts intact.
+
+Final MP4 and WAV delivery always uses the verified original, even when an
+offline proxy is available. Frozen jobs and saved mix plans retain their
+original trims, gains and content identities and can resolve an original's
+accepted new location after reopening. Original absence blocks delivery;
+a proxy is never evidence that the original has reconnected. Existing databases
+gain additive tables and original asset rows need no manual migration.
+
 A trusted-operator HTTP service for assembling sequential media into normalized MP4s. It supports ordered timeline edits, frozen exports, persistent render jobs, verified segment reuse, cancellation and recovery after a worker process disappears. Video is normalized to 640×360 at 25 fps; audio is stereo 48 kHz. Silent clips receive a bounded silent track. Each occurrence retains its own trim and gain even when the source is reused.
 
 ## Runtime

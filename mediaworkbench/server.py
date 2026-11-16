@@ -7,6 +7,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse
 from . import assets, db, timeline, renders, worker, jobs
 from . import audio_layers, mix_plan, mix_render
+from . import media_sources, proxies, relinking
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -30,6 +31,8 @@ class Handler(BaseHTTPRequestHandler):
                     result = audio_layers.snapshot(conn, int(path[1]))
                 elif len(path) == 2 and path[0] == 'mix-plans':
                     result = mix_plan.get(conn, int(path[1]))
+                elif len(path) == 2 and path[0] == 'assets':
+                    result = media_sources.get(conn, int(path[1]))
                 else:
                     return self.respond(404, {'error': 'not found'})
             self.respond(200, result)
@@ -48,6 +51,12 @@ class Handler(BaseHTTPRequestHandler):
             with closing(db.connect(self.server.database)) as conn:
                 if path == ['assets']:
                     result = assets.register(conn, data['path'])
+                elif path == ['asset-relinks']:
+                    result = relinking.replace(conn, data['locations'])
+                elif len(path) == 3 and path[0] == 'assets' and path[2] == 'proxy':
+                    result = proxies.create(conn, int(path[1]), data['directory'])
+                elif len(path) == 3 and path[0] == 'projects' and path[2] == 'preview':
+                    result = proxies.preview(conn, int(path[1]), data['destination'])
                 elif path == ['projects']:
                     result = timeline.project(conn, data['name'])
                 elif path == ['clips']:

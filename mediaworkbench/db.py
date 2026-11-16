@@ -33,6 +33,14 @@ CREATE TABLE IF NOT EXISTS audio_mix_plans (
     project_id INTEGER NOT NULL REFERENCES projects(id), revision INTEGER NOT NULL,
     payload TEXT NOT NULL, payload_sha256 TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS asset_links (
+    asset_id INTEGER PRIMARY KEY REFERENCES assets(id), revision INTEGER NOT NULL
+);
+CREATE TABLE IF NOT EXISTS asset_proxies (
+    asset_id INTEGER PRIMARY KEY REFERENCES assets(id),
+    generation INTEGER NOT NULL DEFAULT 0, ready_generation INTEGER,
+    path TEXT, fingerprint TEXT, source_fingerprint TEXT, metadata TEXT, error TEXT
+);
 '''
 
 def connect(path):

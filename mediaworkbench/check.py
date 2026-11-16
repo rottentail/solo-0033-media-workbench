@@ -6,12 +6,13 @@ from pathlib import Path
 import tempfile
 import time
 from . import db, assets, timeline, renders, jobs, worker, audio_layers, mix_plan, mix_render
+from . import media_sources, proxies, relinking
 from .tools import run
 
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--workflow', choices=['all', 'timeline', 'render', 'recovery', 'mix'], default='all')
+    parser.add_argument('--workflow', choices=['all', 'timeline', 'render', 'recovery', 'mix', 'sources'], default='all')
     workflow = parser.parse_args().workflow
     with tempfile.TemporaryDirectory(prefix='media-check-') as directory:
         root = Path(directory)
@@ -61,6 +62,19 @@ def main():
             if workflow in ('all', 'recovery'):
                 queued = renders.queue(conn, project['id'], root / 'recovered.mp4')
                 jobs.claim(conn, queued['id'], 'departed-worker', seconds=.2)
+            if workflow in ('all', 'sources'):
+                proxies.create(conn, asset['id'], root)
+                moved = root / 'relocated.mp4'
+                source.rename(moved)
+                preview = proxies.preview(conn, project['id'], root / 'preview.mp4')
+                assert preview['renditions'] == ['proxy', 'proxy']
+                relinking.replace(conn, [{'asset_id': asset['id'], 'path': str(moved),
+                                          'expected_revision': 0}])
+                current = media_sources.get(conn, asset['id'])
+                assert current['path'] == str(moved) and current['link_revision'] == 1
+                result = renders.create(conn, project['id'], root / 'online.mp4')
+                assert result['status'] == 'completed'
+                print('Source workflow passed: offline proxy preview and verified original reconnection.')
         if workflow in ('all', 'recovery'):
             time.sleep(.25)
             with closing(db.connect(database)) as resumed:
