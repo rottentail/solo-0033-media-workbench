@@ -63,6 +63,31 @@
       "id": "tools",
       "path": "mediaworkbench/tools.py",
       "responsibility": "有界子进程及取消检查"
+    },
+    {
+      "id": "audio_signal",
+      "path": "mediaworkbench/audio_signal.py",
+      "responsibility": "逐次裁切音频解码与增益后双声道活动检测"
+    },
+    {
+      "id": "audio_layers",
+      "path": "mediaworkbench/audio_layers.py",
+      "responsibility": "有修订的配音实例与一致混音快照"
+    },
+    {
+      "id": "ducking",
+      "path": "mediaworkbench/ducking.py",
+      "responsibility": "重叠配音攻击释放曲线的下包络及交点"
+    },
+    {
+      "id": "mix_plan",
+      "path": "mediaworkbench/mix_plan.py",
+      "responsibility": "冻结活动区间和试听曲线并校验持久化摘要"
+    },
+    {
+      "id": "mix_render",
+      "path": "mediaworkbench/mix_render.py",
+      "responsibility": "磁盘暂存、定长块混音和整节目统一峰值补偿"
     }
   ],
   "workflows": [
@@ -136,6 +161,32 @@
         "db",
         "tools"
       ]
+    },
+    {
+      "id": "voice-ducking",
+      "name": "配音避让试听与有界内存整节目混音",
+      "entry": "POST /mix-plans; POST /mix-plans/{id}/render",
+      "steps": [
+        "以编辑修订冻结背景和配音实例",
+        "逐次裁切分析实际可听活动并生成连续避让曲线",
+        "保存不可变方案",
+        "每实例解码一次并在临时磁盘保存PCM",
+        "定长块扫描整节目峰值后统一补偿导出WAV"
+      ],
+      "success": "背景仅在可听配音处平顺避让，重叠不重复压低，整节目保持相对响度并在192MiB环境导出",
+      "failure": "变动源文件、越界配音和目标冲突拒绝；失败释放暂存文件",
+      "verification": "python3 -m mediaworkbench.check --workflow mix",
+      "module_ids": [
+        "server",
+        "db",
+        "assets",
+        "timeline",
+        "audio_layers",
+        "audio_signal",
+        "ducking",
+        "mix_plan",
+        "mix_render"
+      ]
     }
   ],
   "complexity": {
@@ -148,7 +199,12 @@
       "lease_fencing",
       "resource_lifecycle",
       "error_propagation",
-      "recoverable_publication"
+      "recoverable_publication",
+      "waveform_activity",
+      "piecewise_lower_envelope",
+      "bounded_pcm_streaming",
+      "global_peak_compensation",
+      "immutable_mix_plan"
     ]
   }
 }

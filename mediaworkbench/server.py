@@ -6,6 +6,7 @@ import sqlite3
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse
 from . import assets, db, timeline, renders, worker, jobs
+from . import audio_layers, mix_plan, mix_render
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -25,6 +26,10 @@ class Handler(BaseHTTPRequestHandler):
                     result = timeline.snapshot(conn, int(path[1]))
                 elif len(path) == 2 and path[0] in ('renders', 'render-jobs'):
                     result = renders.get(conn, int(path[1]))
+                elif len(path) == 3 and path[0] == 'projects' and path[2] == 'audio':
+                    result = audio_layers.snapshot(conn, int(path[1]))
+                elif len(path) == 2 and path[0] == 'mix-plans':
+                    result = mix_plan.get(conn, int(path[1]))
                 else:
                     return self.respond(404, {'error': 'not found'})
             self.respond(200, result)
@@ -50,6 +55,13 @@ class Handler(BaseHTTPRequestHandler):
                         data['start_ms'], data['end_ms'], data.get('gain', 1))
                 elif len(path) == 3 and path[0] == 'projects' and path[2] == 'timeline':
                     result = timeline.replace(conn, int(path[1]), data['clips'], data['expected_revision'])
+                elif len(path) == 3 and path[0] == 'projects' and path[2] == 'voices':
+                    result = audio_layers.replace(conn, int(path[1]), data['voices'], data['expected_revision'])
+                elif path == ['mix-plans']:
+                    result = mix_plan.create(conn, data['project_id'], data.get('threshold_db', -38),
+                                            data.get('attack_ms', 40), data.get('release_ms', 160))
+                elif len(path) == 3 and path[0] == 'mix-plans' and path[2] == 'render':
+                    result = mix_render.render(conn, int(path[1]), data['destination'])
                 elif path == ['renders']:
                     result = renders.create(conn, data['project_id'], data['destination'])
                 elif path == ['render-jobs']:

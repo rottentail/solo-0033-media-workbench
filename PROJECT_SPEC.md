@@ -19,3 +19,19 @@ Video is fixed at 640×360, 25 fps and square pixels. Audio is AAC, stereo 48 kH
 The runtime requires Python 3.10+, POSIX filesystem locks and FFmpeg/FFprobe. Processing is bounded per subprocess, and claim checks can terminate the child. The service does not provide authentication, an autonomous scheduler, automatic retry, cache eviction, arbitrary output codecs or a distributed filesystem protocol. Worker-process interruption is recoverable; hardware/power failure across SQLite and the filesystem is outside the guarantee. Old databases gain only additive tables, and old renders remain readable.
 
 Validation uses generated media, real public HTTP requests, FFprobe, sampled pixels and decoded audio. The production workflow check covers editing/revision rejection, normalized export, expired-claim takeover and cancellation. Automated test files are deliberately deferred to the later task-verification stage; independent baseline fault experiments are retained outside the repository. A baseline with these mechanisms offers more task capacity, but each future difficult Bugfix still requires its own prompt-only review, real healthy/defective probes, narrow repair experiment and source admission.
+
+The independent voice-ducking workflow adds editable positioned voice
+occurrences, persisted audition plans and separate WAV export. It measures
+post-gain stereo RMS on occurrence-local 20 ms windows, converts those spans
+to absolute sample positions, then constructs the lower envelope of linear
+attack/release curves with exact intersections. Background ducking is applied
+once regardless of the number of simultaneous voices. Each saved plan owns
+its selected revision, per-occurrence trims, gains, activity and envelope.
+
+The render resource contract is at most 600 seconds and 16 voices, one decode
+per occurrence per export, fixed-size PCM blocks, private temporary disk
+storage and a complete-programme peak scan before applying one global scale.
+This reconciles bounded RAM with late high peaks and preserved stem balance.
+Memory and temporary-file lifetime are production behavior, not task metadata.
+Original MP4 rendering, resumable jobs and existing database records remain
+compatible through additive tables and separate routes.

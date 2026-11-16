@@ -20,6 +20,19 @@ CREATE TABLE IF NOT EXISTS render_segments (
     status TEXT NOT NULL, digest TEXT,
     PRIMARY KEY (render_id, position)
 );
+CREATE TABLE IF NOT EXISTS audio_voices (
+    id INTEGER PRIMARY KEY,
+    project_id INTEGER NOT NULL REFERENCES projects(id),
+    position INTEGER NOT NULL, asset_id INTEGER NOT NULL REFERENCES assets(id),
+    start_ms INTEGER NOT NULL, end_ms INTEGER NOT NULL,
+    at_ms INTEGER NOT NULL, gain REAL NOT NULL, duck_db REAL NOT NULL,
+    UNIQUE(project_id, position)
+);
+CREATE TABLE IF NOT EXISTS audio_mix_plans (
+    id INTEGER PRIMARY KEY,
+    project_id INTEGER NOT NULL REFERENCES projects(id), revision INTEGER NOT NULL,
+    payload TEXT NOT NULL, payload_sha256 TEXT NOT NULL
+);
 '''
 
 def connect(path):

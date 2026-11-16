@@ -5,13 +5,13 @@ import json
 from pathlib import Path
 import tempfile
 import time
-from . import db, assets, timeline, renders, jobs, worker
+from . import db, assets, timeline, renders, jobs, worker, audio_layers, mix_plan, mix_render
 from .tools import run
 
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--workflow', choices=['all', 'timeline', 'render', 'recovery'], default='all')
+    parser.add_argument('--workflow', choices=['all', 'timeline', 'render', 'recovery', 'mix'], default='all')
     workflow = parser.parse_args().workflow
     with tempfile.TemporaryDirectory(prefix='media-check-') as directory:
         root = Path(directory)
@@ -39,6 +39,17 @@ def main():
                     raise AssertionError('stale edit accepted')
                 assert len(timeline.snapshot(conn, project['id'])['clips']) == 2
                 print('Timeline workflow passed: atomic reorder and stale revision rejection.')
+            if workflow in ('all', 'mix'):
+                audio_layers.replace(conn, project['id'], [
+                    {'asset_id': asset['id'], 'start_ms': 200, 'end_ms': 1200,
+                     'at_ms': 500, 'gain': .7, 'duck_db': -12},
+                ], expected_revision=timeline.snapshot(conn, project['id'])['project']['revision'])
+                plan = mix_plan.create(conn, project['id'])
+                output = mix_render.render(conn, plan['id'], root / 'mixed.wav')
+                assert output['frames'] == 96000
+                assert (root / 'mixed.wav').stat().st_size > 384000
+                assert mix_plan.get(conn, plan['id'])['envelope'] == plan['envelope']
+                print('Mix workflow passed: saved ducking envelope and stereo WAV export.')
             if workflow in ('all', 'render'):
                 result = renders.create(conn, project['id'], root / 'output.mp4')
                 probe = json.loads(run('ffprobe', ['-v','error','-show_streams','-show_format',

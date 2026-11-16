@@ -48,3 +48,43 @@ python3 -m mediaworkbench.check --workflow recovery
 ```
 
 They generate temporary media and databases, exercise real production operations and inspect the resulting MP4 with FFprobe. Independent concurrency, corruption and process-interruption verification is kept outside the delivered baseline.
+
+## Voice ducking and saved audio mixes
+
+The audio mix workflow exports a separate stereo 48 kHz, 16-bit WAV from the
+project's sequential background timeline and up to 16 positioned voice
+occurrences. It does not change the MP4 render-job workflow. Programmes are
+limited to 600 seconds and 512 detected audible spans across the voice layer. Background occurrences may be audio-only sources;
+MP4 exports retain their existing requirement for video.
+
+- `POST /projects/1/voices`: `{"expected_revision":2,"voices":[{"asset_id":3,"start_ms":200,"end_ms":1800,"at_ms":500,"gain":0.7,"duck_db":-12}]}`
+  atomically replaces the voice occurrences and increments the shared project
+  revision. Voice sources must contain audio, and edits reject stale revisions.
+- `GET /projects/1/audio` returns one consistent background and voice view.
+- `POST /mix-plans`: `{"project_id":1,"threshold_db":-38,"attack_ms":40,"release_ms":160}`
+  freezes a saved audition plan. Defaults are shown. A 20 ms stereo RMS window
+  after occurrence gain identifies audible intervals; silence, muted voices,
+  trims and short final windows retain their actual meaning.
+- `GET /mix-plans/1` returns the immutable plan, audible spans and piecewise
+  linear background-gain envelope. Times in these arrays are 48 kHz sample
+  positions. The stored payload checksum is checked on reading.
+- `POST /mix-plans/1/render`: `{"destination":"/absolute/new.wav"}` exports
+  that saved plan and reports its revision, checksum, peak and whole-programme
+  output scale. Later edits do not affect it; changed source bytes are refused.
+
+Each audible span contributes a linear attack, constant duck gain and linear
+release. Overlap uses the strongest attenuation, including intersections
+between ramps; it never multiplies duck gains. The foreground remains at its
+specified relative gains. Mixing sums all active foreground occurrences with
+the attenuated background before measuring peak. One scale of at most 1 keeps
+the complete programme below 0.98 sample peak, preserving relative loudness
+between early and late material without independently normalizing blocks.
+
+Render decodes each occurrence once to private temporary PCM, reads fixed-size
+blocks twice (peak scan and output), and deletes temporary files on success or
+failure. Its working memory does not grow with programme length; temporary
+storage scales with decoded duration and is required. A 300-second programme
+is independently checked in an OrbStack container capped at 192 MiB. This is
+sample-peak protection, not a broadcast loudness or intersample-peak limiter.
+Existing output names and symlinks are preserved. No live audio playback,
+background mixing scheduler or network source reader is provided.

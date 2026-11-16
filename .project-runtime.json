@@ -18,6 +18,10 @@
     {
       "workflow_id": "resumable-render",
       "command": "python3 -m mediaworkbench.check --workflow recovery"
+    },
+    {
+      "workflow_id": "voice-ducking",
+      "command": "python3 -m mediaworkbench.check --workflow mix"
     }
   ]
 }

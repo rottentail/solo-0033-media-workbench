@@ -231,6 +231,15 @@
         "publication.cancel"
       ],
       "available": true
+    },
+    {
+      "family": "配音避让与整节目有界混音",
+      "occupied_by": [
+        "audio_signal.measure",
+        "ducking.envelope",
+        "mix_render.blocks"
+      ],
+      "available": true
     }
   ],
   "extension_seams": [
@@ -261,6 +270,13 @@
       "entry": "POST /render-jobs/{id}/run",
       "distinct_outcome": "中断后的产物归属恢复及并发目标保护",
       "mechanism": "recoverable_publication"
+    },
+    {
+      "id": "voice-ducking",
+      "anchor": "mix_plan.create",
+      "entry": "POST /mix-plans",
+      "distinct_outcome": "源裁切、增益后活动、交叠曲线和整段响度一致的配音混音",
+      "mechanism": "waveform_envelope_streaming"
     }
   ],
   "tension_points": [
@@ -278,6 +294,11 @@
       "workflow_id": "resumable-render",
       "description": "恢复必须复用已完成工作，同时识别损坏缓存和过期所有者，且不能覆盖其他任务产物",
       "observable_failure": "旧工作进程覆盖新状态，恢复误认损坏片段或清理别人的文件"
+    },
+    {
+      "workflow_id": "voice-ducking",
+      "description": "单次解码和有限内存下还要保留整节目全局峰值关系及已保存避让曲线",
+      "observable_failure": "长节目OOM、块间响度跳变、迟到峰值削顶或静音处错误避让"
     }
   ],
   "prompt_anchors": []
