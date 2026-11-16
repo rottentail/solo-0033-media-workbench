@@ -3,6 +3,7 @@ import sqlite3
 from contextlib import contextmanager
 
 SCHEMA = '''
+CREATE TABLE IF NOT EXISTS multicam_plans (id INTEGER PRIMARY KEY, project_id INTEGER NOT NULL REFERENCES projects(id), payload TEXT NOT NULL, payload_sha256 TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS edit_heads (project_id INTEGER PRIMARY KEY, revision INTEGER NOT NULL, clip_ids TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS edit_nodes (key BLOB PRIMARY KEY, payload BLOB NOT NULL) WITHOUT ROWID;
 CREATE TABLE IF NOT EXISTS edit_versions (project_id INTEGER NOT NULL REFERENCES projects(id), revision INTEGER NOT NULL, payload TEXT NOT NULL, PRIMARY KEY(project_id,revision));

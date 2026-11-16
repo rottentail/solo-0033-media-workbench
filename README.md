@@ -230,3 +230,35 @@ background mixing scheduler or network source reader is provided.
 复制512次剪入的完整历史。设计容量为512剪入、一天一万批短编辑的协作历史不超过64 MiB；
 同日旧版本合并、回执重放和未冲突撤销可用。当前未自动过期历史。
 数据库提交仅覆盖短编辑事务，媒体任务仍冻结已提交快照后在事务外执行。
+
+
+## Calibrated multicamera editing
+
+`POST /multicam-plans` saves an independent camera programme. Fields are
+`project_id`, `master_asset_id`, `duration_ms`, `cameras`, `minimum_shot_ms`
+(default 400), `max_cuts` (default 8), and `cut_cost` (default 0).
+A camera occurrence contains `asset_id`, `anchors` with `programme_ms` and
+`source_ms`, and ordered disjoint `quality` intervals (`start_ms`, `end_ms`,
+`score`). Repeated camera assets remain independent occurrences.
+
+Two to sixty-four increasing clock observations define an exact piecewise
+linear programme-to-source mapping. Extrapolation is not permitted. Scores
+are integers from -1000 to 1000 on the programme clock; gaps have score zero.
+The programme is one to 750 complete 25 fps frames. At most four cameras and
+sixteen cuts are supported. Each selected camera must cover its entire output
+frame. The minimum shot duration rounds up to frames and applies to the first
+and last shots too. Select the complete feasible camera sequence maximizing
+the sum of frame-midpoint scores minus `cut_cost` per switch; ties select the
+lexicographically first sequence of input camera indexes. No feasible full
+sequence means no plan is saved.
+
+`GET /multicam-plans/{id}` reads the checksummed frozen result, and
+`POST /multicam-plans/{id}/render` with `destination` exports it. Pictures use
+the calibrated source time at each programme frame midpoint, including after
+camera changes. The continuous master audio is independent of camera cuts.
+Later timeline edits do not affect saved camera plans. Original reconnection
+remains supported; originals must match their saved content identities.
+Rendering uses one disk materialization per camera occurrence and bounded
+frame memory, refuses existing destinations and cleans temporary work after
+failure. These are operator-selected quality curves, not automatic visual
+quality detection or audio-based clock inference.

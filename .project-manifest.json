@@ -153,6 +153,21 @@
       "id": "collab_store",
       "path": "mediaworkbench/collab_store.py",
       "responsibility": "短事务提交、持久序列树和原始幂等回执"
+    },
+    {
+      "id": "sync_clock",
+      "path": "mediaworkbench/sync_clock.py",
+      "responsibility": "单调分段校准与节目到源样本时钟映射"
+    },
+    {
+      "id": "multicam_plan",
+      "path": "mediaworkbench/multicam_plan.py",
+      "responsibility": "覆盖约束、最短镜头和切换预算下整段全局选镜"
+    },
+    {
+      "id": "multicam_render",
+      "path": "mediaworkbench/multicam_render.py",
+      "responsibility": "独立源时钟逐帧定位、连续主声音和有界成片"
     }
   ],
   "workflows": [

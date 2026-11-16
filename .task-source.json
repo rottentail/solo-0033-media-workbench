@@ -285,6 +285,15 @@
         "collab_store.commit"
       ],
       "available": true
+    },
+    {
+      "family": "多机位独立时钟与整段选镜",
+      "occupied_by": [
+        "sync_clock.position",
+        "multicam_plan.choose",
+        "multicam_render.pictures"
+      ],
+      "available": true
     }
   ],
   "extension_seams": [
@@ -357,6 +366,13 @@
       "entry": "POST /projects/{id}/edits",
       "distinct_outcome": "旧视图所选剪入跨拆分合并、选择性撤销、原回执重放及受限历史容量",
       "mechanism": "lineage_interval_rebase_persistent_sequence"
+    },
+    {
+      "id": "calibrated-multicam",
+      "anchor": "multicam_plan.create",
+      "entry": "POST /multicam-plans",
+      "distinct_outcome": "非均匀漂移校准、受镜头持续和切换预算约束的全局选镜与主录音同步交付",
+      "mechanism": "piecewise_clock_constrained_sequence_optimization"
     }
   ],
   "tension_points": [
@@ -404,6 +420,11 @@
       "workflow_id": "collaborative-edit",
       "description": "长时间线高频短编辑必须保留旧视图和回执语义，同时共享历史以约束磁盘放大",
       "observable_failure": "错误移动别的剪入、撤销覆盖他人编辑、重发重复执行或历史容量耗尽"
+    },
+    {
+      "workflow_id": "calibrated-multicam",
+      "description": "局部最清晰镜头可能提前耗尽切换预算或无法覆盖结尾，整段选择还须保持各机位独立时钟",
+      "observable_failure": "前段抢切后段错镜、校准间漂移或切镜时跳到错误源画面"
     }
   ],
   "prompt_anchors": []
