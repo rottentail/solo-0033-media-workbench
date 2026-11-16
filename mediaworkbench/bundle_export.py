@@ -76,6 +76,30 @@ def write_fanout(archives, name, receipt):
     return count
 
 
+def withdraw(path, device, inode):
+    """Inspect a withdrawn name privately before deleting owned bytes."""
+    directory = Path(tempfile.mkdtemp(prefix='.offline-recovery-', dir=path.parent))
+    candidate = directory/'candidate'
+    try:
+        try:
+            os.rename(path, candidate)
+        except FileNotFoundError:
+            return None
+        info = candidate.lstat()
+        if (info.st_dev, info.st_ino) != (device, inode):
+            # An unrelated writer may replace a published name at any time.
+            # Put that inode back without overwriting a newer replacement.
+            try:
+                os.link(candidate, path)
+            except FileExistsError:
+                return str(candidate)
+        candidate.unlink()
+        return None
+    finally:
+        if not candidate.exists():
+            directory.rmdir()
+
+
 def create_set(conn, projects, volumes):
     if (not isinstance(volumes, list) or not 1 <= len(volumes) <= 3
             or not isinstance(projects, list) or len(projects) > 12):
@@ -123,17 +147,17 @@ def create_set(conn, projects, volumes):
                     os.fsync(handle.fileno())
             checksums = [fingerprint(output) for output in outputs]
             for output,destination in zip(outputs,destinations):
+                info = output.stat()
                 os.link(output, destination)
-                info = destination.stat()
                 published.append((destination, info.st_dev, info.st_ino))
         return dict(allocation, outputs=[{'path':str(p),'sha256':checksum}
                                          for p,checksum in zip(destinations,checksums)])
-    except BaseException:
+    except BaseException as exc:
+        recoveries = []
         for path,device,inode in published:
-            try:
-                info = path.lstat()
-                if (info.st_dev,info.st_ino) == (device,inode):
-                    path.unlink()
-            except FileNotFoundError:
-                pass
+            retained = withdraw(path, device, inode)
+            if retained:
+                recoveries.append(retained)
+        if recoveries:
+            raise ValueError('concurrent replacements preserved at '+', '.join(recoveries)) from exc
         raise
