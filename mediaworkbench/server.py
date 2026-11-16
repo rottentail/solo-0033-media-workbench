@@ -10,6 +10,7 @@ from . import audio_layers, mix_plan, mix_render
 from . import media_sources, proxies, relinking, proxy_store
 from . import transition_plan, transition_render, retime_plan, retime_render
 from . import multicam_plan, multicam_render
+from . import spatial_plan, spatial_render
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -43,6 +44,8 @@ class Handler(BaseHTTPRequestHandler):
                     result = transition_plan.get(conn, int(path[1]))
                 elif len(path) == 2 and path[0] == 'multicam-plans':
                     result = multicam_plan.get(conn, int(path[1]))
+                elif len(path) == 2 and path[0] == 'spatial-plans':
+                    result = spatial_plan.get(conn, int(path[1]))
                 else:
                     return self.respond(404, {'error': 'not found'})
             self.respond(200, result)
@@ -90,6 +93,14 @@ class Handler(BaseHTTPRequestHandler):
                     result = multicam_plan.create(conn, data['project_id'], data['cameras'],
                         data['master_asset_id'], data['duration_ms'], data.get('minimum_shot_ms',400),
                         data.get('max_cuts',8), data.get('cut_cost',0))
+                elif path == ['spatial-plans']:
+                    result = spatial_plan.create(conn, data['project_id'], data['asset_id'],
+                        data['start_ms'], data['end_ms'], data['convention'], data['keyframes'])
+                elif len(path) == 3 and path[0] == 'spatial-plans' and path[2] == 'render':
+                    result = spatial_render.render(conn, int(path[1]), data['destination'])
+                elif len(path) == 3 and path[0] == 'spatial-plans' and path[2] == 'audition':
+                    result = spatial_render.render(conn, int(path[1]), data['destination'],
+                        data['at_ms'], data['duration_ms'])
                 elif len(path) == 3 and path[0] == 'multicam-plans' and path[2] == 'render':
                     result = multicam_render.render(conn, int(path[1]), data['destination'])
                 elif len(path) == 3 and path[0] == 'retime-plans' and path[2] == 'render':

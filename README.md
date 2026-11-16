@@ -262,3 +262,39 @@ Rendering uses one disk materialization per camera occurrence and bounded
 frame memory, refuses existing destinations and cleans temporary work after
 failure. These are operator-selected quality curves, not automatic visual
 quality detection or audio-based clock inference.
+
+## Listener-oriented first-order soundfields
+
+`POST /spatial-plans` freezes a trimmed four-channel recording and listener
+keyframes. Supply `project_id`, `asset_id`, integer `start_ms`/`end_ms`,
+`convention` (`ambix` or `fuma`), and `keyframes` containing `at_ms` and `q`.
+The trim can span 1 ms to 30 seconds. Keyframes cover its complete duration,
+with 2–64 strictly increasing times relative to the trimmed programme.
+Quaternions are normalized `[w,x,y,z]` listener-to-world poses in right-handed
+X-front, Y-left, Z-up coordinates. Equivalent signed quaternions describe the
+same orientation. Adjacent poses take the shortest spherical path at constant
+angular speed; a dot-zero half-turn takes the path encoded by the input signs.
+
+AmbiX input is ACN/SN3D `[W,Y,Z,X]`; FuMa input is maxN `[W,X,Y,Z]`, with its
+W coefficient scaled by sqrt(2) on conversion to SN3D. Directional coefficients
+are expressed in listener coordinates using the inverse listener pose. Rotation
+preserves omnidirectional pressure and the length of the directional vector;
+there is no loudness compensation, clipping or stereo downmix. Four channels
+are an explicit soundfield convention supplied by the operator, not inferred
+from a WAV speaker-layout label.
+
+`GET /spatial-plans/{id}` reads the checksummed frozen plan. Export with
+`POST /spatial-plans/{id}/render` and a new `destination`; output is 48 kHz,
+four-channel float WAV in ACN/SN3D order. The programme clock begins at the
+trim start and continues across all blocks. Samples are independent of block
+partition. Original media are decoded once to private disk, transformed with
+bounded buffers, verified again and published without replacing an existing
+path. Saved plans survive reopening and resolve accepted original relinks.
+Ordinary stereo workflows remain separate.
+
+`POST /spatial-plans/{id}/audition` exports a short listening excerpt with
+`destination`, integer `at_ms` and `duration_ms` relative to the saved programme.
+Auditioning a later interval uses that interval's original listener poses,
+without restarting the motion. Its samples match the corresponding slice of
+full delivery, so the editor can inspect any passage before handing over the
+unchanged frozen plan. Excerpts also retain all four soundfield channels.

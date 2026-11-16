@@ -168,6 +168,21 @@
       "id": "multicam_render",
       "path": "mediaworkbench/multicam_render.py",
       "responsibility": "独立源时钟逐帧定位、连续主声音和有界成片"
+    },
+    {
+      "id": "spatial_plan",
+      "path": "mediaworkbench/spatial_plan.py",
+      "responsibility": "一阶声场冻结姿态和球面最短路径"
+    },
+    {
+      "id": "spatial_signal",
+      "path": "mediaworkbench/spatial_signal.py",
+      "responsibility": "通道约定转换与听者坐标逆旋转"
+    },
+    {
+      "id": "spatial_render",
+      "path": "mediaworkbench/spatial_render.py",
+      "responsibility": "单次四声道解码与全局采样时钟流式交付"
     }
   ],
   "workflows": [

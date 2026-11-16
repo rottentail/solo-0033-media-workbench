@@ -294,6 +294,15 @@
         "multicam_render.pictures"
       ],
       "available": true
+    },
+    {
+      "family": "一阶空间声场的动态听者朝向",
+      "occupied_by": [
+        "spatial_plan.orientation",
+        "spatial_signal.transform",
+        "spatial_render.write_programme"
+      ],
+      "available": true
     }
   ],
   "extension_seams": [
@@ -373,6 +382,13 @@
       "entry": "POST /multicam-plans",
       "distinct_outcome": "非均匀漂移校准、受镜头持续和切换预算约束的全局选镜与主录音同步交付",
       "mechanism": "piecewise_clock_constrained_sequence_optimization"
+    },
+    {
+      "id": "listener-soundfield",
+      "anchor": "spatial_plan.create",
+      "entry": "POST /spatial-plans",
+      "distinct_outcome": "按冻结姿态的最短球面轨迹旋转AmbiX/FuMa一阶声场并保持声压与方向能量",
+      "mechanism": "quaternion_geodesic_passive_foa_streaming"
     }
   ],
   "tension_points": [
@@ -425,6 +441,11 @@
       "workflow_id": "calibrated-multicam",
       "description": "局部最清晰镜头可能提前耗尽切换预算或无法覆盖结尾，整段选择还须保持各机位独立时钟",
       "observable_failure": "前段抢切后段错镜、校准间漂移或切镜时跳到错误源画面"
+    },
+    {
+      "workflow_id": "listener-soundfield",
+      "description": "姿态平滑与声场能量不变须同时成立，不能以线性通道交叉淡化换取平滑；分块不应改变全局轨迹",
+      "observable_failure": "转头绕远、声场塌缩、上下左右混淆或块边界朝向回跳"
     }
   ],
   "prompt_anchors": []
