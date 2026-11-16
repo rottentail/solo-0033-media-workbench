@@ -10,10 +10,14 @@ RATE = 48000
 def unit(values):
     if len(values) != 4 or any(type(v) not in (int, float) or not math.isfinite(v) for v in values):
         raise ValueError('pose must be a finite quaternion [w,x,y,z]')
-    norm = math.sqrt(sum(v*v for v in values))
+    norm = math.hypot(*values)
     if norm < 1e-12:
         raise ValueError('pose quaternion has no orientation')
-    return [v/norm for v in values]
+    values = [v/norm for v in values]
+    # Canonical representatives also make exactly half-turn paths independent
+    # of the signs used to record equivalent endpoint orientations.
+    sign = next(v for v in values if v != 0)
+    return values if sign > 0 else [-v for v in values]
 
 
 def poses(keyframes, duration_ms):
@@ -37,17 +41,17 @@ def orientation(plan, sample):
     for left, right in zip(points, points[1:]):
         if sample <= right['sample']:
             t = (sample-left['sample'])/(right['sample']-left['sample'])
-            a, b = left['q'], right['q']
+            a, b = unit(left['q']), unit(right['q'])
             dot = sum(x*y for x, y in zip(a, b))
             if dot < 0:
                 b, dot = [-x for x in b], -dot
-            dot = min(1.0, max(-1.0, dot))
-            if dot > .9995:
-                return unit([(1-t)*x+t*y for x, y in zip(a, b)])
-            angle = math.acos(dot)
-            first = math.sin((1-t)*angle)/math.sin(angle)
-            second = math.sin(t*angle)/math.sin(angle)
-            return [first*x+second*y for x, y in zip(a, b)]
+            tangent = [y-dot*x for x, y in zip(a, b)]
+            length = math.hypot(*tangent)
+            if length == 0:
+                return a
+            angle = math.atan2(length, dot)
+            c, s = math.cos(t*angle), math.sin(t*angle)
+            return unit([c*x+s*v/length for x, v in zip(a, tangent)])
     return list(points[-1]['q'])
 
 
