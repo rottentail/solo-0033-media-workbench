@@ -1,5 +1,34 @@
 # Media Workbench
 
+## Saved overlapping transitions
+
+`POST /transition-plans` accepts `{"project_id":1,"overlaps_ms":[80,80]}`
+for a three-occurrence timeline. It freezes the current cuts and gains; inspect
+it with `GET /transition-plans/{id}` and export with
+`POST /transition-plans/{id}/render` and a new `destination` path.
+The existing sequential render and voice-ducking routes remain separate.
+
+Plans support one to eight occurrences, at least 40 ms each, and up to
+30 seconds of resulting programme. Each overlap must be shorter than both
+neighbors. An incoming and outgoing transition may overlap inside a short
+middle shot: all active occurrences contribute simultaneously. Their linear
+incoming/outgoing ramps are multiplied per occurrence, then normalized across
+the active set. This prevents dark holes and preserves the middle shot.
+RGB is composited in linear light, and original per-occurrence audio gains
+are applied using the same coverage on the continuous 48 kHz clock.
+
+Cut durations and overlap offsets retain millisecond precision. Video samples
+coverage at each 25 fps frame midpoint. Only the final programme is padded to
+a complete video frame; its last partial picture holds the last programme
+instant, and the corresponding audio padding is silent. Reusing a source does
+not combine its independently trimmed occurrences. Saved plans remain
+independent of later edits and can resolve reconnected original media.
+
+Decoders materialize each video and audio stream once on temporary disk. The
+compositor reads one picture per active occurrence and fixed audio blocks,
+keeping memory independent of programme length. Encoded output is published
+without overwriting an existing path; failures remove private temporary files.
+
 ## Offline proxy editing and original reconnection
 
 Video assets can have a 320×180 audition proxy. `POST /assets/{id}/proxy`

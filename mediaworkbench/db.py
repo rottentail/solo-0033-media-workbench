@@ -41,6 +41,11 @@ CREATE TABLE IF NOT EXISTS asset_proxies (
     generation INTEGER NOT NULL DEFAULT 0, ready_generation INTEGER,
     path TEXT, fingerprint TEXT, source_fingerprint TEXT, metadata TEXT, error TEXT
 );
+CREATE TABLE IF NOT EXISTS transition_plans (
+    id INTEGER PRIMARY KEY,
+    project_id INTEGER NOT NULL REFERENCES projects(id), revision INTEGER NOT NULL,
+    payload TEXT NOT NULL, payload_sha256 TEXT NOT NULL
+);
 '''
 
 def connect(path):

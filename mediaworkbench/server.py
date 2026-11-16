@@ -8,6 +8,7 @@ from urllib.parse import urlparse
 from . import assets, db, timeline, renders, worker, jobs
 from . import audio_layers, mix_plan, mix_render
 from . import media_sources, proxies, relinking
+from . import transition_plan, transition_render
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -33,6 +34,8 @@ class Handler(BaseHTTPRequestHandler):
                     result = mix_plan.get(conn, int(path[1]))
                 elif len(path) == 2 and path[0] == 'assets':
                     result = media_sources.get(conn, int(path[1]))
+                elif len(path) == 2 and path[0] == 'transition-plans':
+                    result = transition_plan.get(conn, int(path[1]))
                 else:
                     return self.respond(404, {'error': 'not found'})
             self.respond(200, result)
@@ -69,6 +72,10 @@ class Handler(BaseHTTPRequestHandler):
                 elif path == ['mix-plans']:
                     result = mix_plan.create(conn, data['project_id'], data.get('threshold_db', -38),
                                             data.get('attack_ms', 40), data.get('release_ms', 160))
+                elif path == ['transition-plans']:
+                    result = transition_plan.create(conn, data['project_id'], data['overlaps_ms'])
+                elif len(path) == 3 and path[0] == 'transition-plans' and path[2] == 'render':
+                    result = transition_render.render(conn, int(path[1]), data['destination'])
                 elif len(path) == 3 and path[0] == 'mix-plans' and path[2] == 'render':
                     result = mix_render.render(conn, int(path[1]), data['destination'])
                 elif path == ['renders']:

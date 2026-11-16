@@ -7,12 +7,13 @@ import tempfile
 import time
 from . import db, assets, timeline, renders, jobs, worker, audio_layers, mix_plan, mix_render
 from . import media_sources, proxies, relinking
+from . import transition_plan, transition_render
 from .tools import run
 
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--workflow', choices=['all', 'timeline', 'render', 'recovery', 'mix', 'sources'], default='all')
+    parser.add_argument('--workflow', choices=['all', 'timeline', 'render', 'recovery', 'mix', 'sources', 'transitions'], default='all')
     workflow = parser.parse_args().workflow
     with tempfile.TemporaryDirectory(prefix='media-check-') as directory:
         root = Path(directory)
@@ -75,6 +76,12 @@ def main():
                 result = renders.create(conn, project['id'], root / 'online.mp4')
                 assert result['status'] == 'completed'
                 print('Source workflow passed: offline proxy preview and verified original reconnection.')
+            if workflow in ('all', 'transitions'):
+                plan = transition_plan.create(conn, project['id'], [200])
+                assert plan['samples'] == 86400 and plan['frames'] == 45
+                result = transition_render.render(conn, plan['id'], root / 'transition.mp4')
+                assert result['frames'] == 45 and (root / 'transition.mp4').is_file()
+                print('Transition workflow passed: frozen overlap timing and streamed audio/video composite.')
         if workflow in ('all', 'recovery'):
             time.sleep(.25)
             with closing(db.connect(database)) as resumed:

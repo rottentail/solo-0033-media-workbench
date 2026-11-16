@@ -55,3 +55,16 @@ This reconciles bounded RAM with late high peaks and preserved stem balance.
 Memory and temporary-file lifetime are production behavior, not task metadata.
 Original MP4 rendering, resumable jobs and existing database records remain
 compatible through additive tables and separate routes.
+
+The saved overlapping-transition workflow supports up to eight occurrences and
+30 seconds of composed programme. Adjacent overlaps place occurrences on an
+exact 48 kHz sample clock; incoming and outgoing linear ramps multiply within
+each occurrence and normalize over all active occurrences. Multiple transitions
+may overlap in a short middle shot. Pictures use linear-light RGB compositing
+at 25 fps frame midpoints; sound uses the same continuous coverage with each
+occurrence gain. Individual cuts are not rounded to frames. Only the programme
+end is extended to a whole frame, with the last visual instant held and audio
+padding silent. Private disk materialization permits each stream to decode
+once, followed by bounded per-frame and per-block synthesis. Saved plans,
+source identity checks, failure cleanup and no-overwrite output publication
+remain enforced.

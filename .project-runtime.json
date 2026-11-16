@@ -26,6 +26,10 @@
     {
       "workflow_id": "offline-relink",
       "command": "python3 -m mediaworkbench.check --workflow sources"
+    },
+    {
+      "workflow_id": "overlap-transitions",
+      "command": "python3 -m mediaworkbench.check --workflow transitions"
     }
   ]
 }

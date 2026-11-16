@@ -103,6 +103,21 @@
       "id": "relinking",
       "path": "mediaworkbench/relinking.py",
       "responsibility": "批量原片内容核验与短事务修订回连"
+    },
+    {
+      "id": "transition_plan",
+      "path": "mediaworkbench/transition_plan.py",
+      "responsibility": "毫秒精度重叠排布、单次末尾量化与不可变方案"
+    },
+    {
+      "id": "transition_signal",
+      "path": "mediaworkbench/transition_signal.py",
+      "responsibility": "多路覆盖归一化、线性光像素和逐采样声音"
+    },
+    {
+      "id": "transition_render",
+      "path": "mediaworkbench/transition_render.py",
+      "responsibility": "一次物化和有界逐帧合成及受保护发布"
     }
   ],
   "workflows": [
@@ -229,6 +244,31 @@
         "worker",
         "server"
       ]
+    },
+    {
+      "id": "overlap-transitions",
+      "name": "多路重叠转场音画一致合成",
+      "entry": "POST /transition-plans; POST /transition-plans/{id}/render",
+      "steps": [
+        "冻结裁切、增益和邻接重叠",
+        "建立单一采样时钟并只对末尾视频量化",
+        "解码每个镜头实例到私有磁盘",
+        "按多路同时覆盖合成线性光画面和原增益声音",
+        "逐帧及块写出并保护发布目标"
+      ],
+      "success": "短中间镜头的三路转场保留正确亮度和声音，短镜头序列不累计帧量化漂移且内存固定",
+      "failure": "非法重叠不保存、变动原片拒绝、失败清理临时数据、旧方案不随新编辑变化",
+      "verification": "python3 -m mediaworkbench.check --workflow transitions",
+      "module_ids": [
+        "transition_plan",
+        "transition_signal",
+        "transition_render",
+        "media_sources",
+        "timeline",
+        "planner",
+        "db",
+        "server"
+      ]
     }
   ],
   "complexity": {
@@ -250,7 +290,11 @@
       "logical_asset_relocation",
       "rendition_trust_separation",
       "generation_publication",
-      "optimistic_batch_relink"
+      "optimistic_batch_relink",
+      "simultaneous_transition_coverage",
+      "linear_light_compositing",
+      "exact_av_clock",
+      "bounded_frame_compositing"
     ]
   }
 }
