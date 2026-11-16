@@ -198,6 +198,21 @@
       "id": "caption_plan",
       "path": "mediaworkbench/caption_plan.py",
       "responsibility": "字幕冻结、逐时预览和WebVTT一致交付"
+    },
+    {
+      "id": "denoise_plan",
+      "path": "mediaworkbench/denoise_plan.py",
+      "responsibility": "底噪功率采样、不可变降噪方案及版本校验"
+    },
+    {
+      "id": "denoise_signal",
+      "path": "mediaworkbench/denoise_signal.py",
+      "responsibility": "双声道联动短时频谱抑制、因果平滑和归一化重叠相加"
+    },
+    {
+      "id": "denoise_render",
+      "path": "mediaworkbench/denoise_render.py",
+      "responsibility": "原片单次解码、有界临时存储及精确片段试听交付"
     }
   ],
   "workflows": [
@@ -461,7 +476,12 @@
       "occurrence_local_word_projection",
       "bottleneck_caption_segmentation",
       "unicode_display_cells",
-      "immutable_caption_delivery"
+      "immutable_caption_delivery",
+      "stationary_noise_power_estimation",
+      "stereo_linked_spectral_mask",
+      "causal_gain_release",
+      "normalized_overlap_add",
+      "stateful_exact_audition"
     ]
   }
 }

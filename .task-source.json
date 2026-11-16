@@ -312,6 +312,15 @@
         "caption_plan.export"
       ],
       "available": true
+    },
+    {
+      "family": "底噪采样与联动频谱修复交付",
+      "occupied_by": [
+        "denoise_plan.profile",
+        "denoise_signal.blocks",
+        "denoise_render.render"
+      ],
+      "available": true
     }
   ],
   "extension_seams": [
@@ -405,6 +414,13 @@
       "entry": "POST /caption-plans",
       "distinct_outcome": "逐词原片字幕在重复剪入内独立投影并按全片阅读负荷分配设备条数，冻结预览与WebVTT一致",
       "mechanism": "occurrence_projection_bottleneck_segmentation_frozen_cues"
+    },
+    {
+      "id": "spectral-restoration",
+      "anchor": "denoise_plan.create",
+      "entry": "POST /denoise-plans",
+      "distinct_outcome": "冻结底噪功率后对节目连续降噪，保持声像、裁切增益以及任意中段试听与完整交付逐采样一致",
+      "mechanism": "noise_power_stereo_mask_causal_overlap_add"
     }
   ],
   "tension_points": [
@@ -467,6 +483,11 @@
       "workflow_id": "caption-delivery",
       "description": "有限条数和两行宽度不能以漏词或拖延到下一镜头满足；局部均衡会牺牲全片最难读字幕，字幕校对和剪辑继续时交付仍需保持已接下的版次",
       "observable_failure": "重复镜头丢词、裁切错时、前段耗尽条数、后段赶读、预览与交付文本时间漂移"
+    },
+    {
+      "workflow_id": "spectral-restoration",
+      "description": "抑制稳态底噪和保护弱音起音需要不同时间响应；独立声道更强去噪会改变声像，任意片段试听又不能重置过去的滤波状态",
+      "observable_failure": "弱音被吞、底噪颤动、声像游移、边界调制或试听无法代表成片"
     }
   ],
   "prompt_anchors": []

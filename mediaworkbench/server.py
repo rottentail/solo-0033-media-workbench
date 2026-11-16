@@ -13,6 +13,7 @@ from . import multicam_plan, multicam_render
 from . import spatial_plan, spatial_render
 from . import bundle_export
 from . import caption_words, caption_plan
+from . import denoise_plan, denoise_render
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -50,6 +51,8 @@ class Handler(BaseHTTPRequestHandler):
                     result = spatial_plan.get(conn, int(path[1]))
                 elif len(path) == 2 and path[0] == 'caption-plans':
                     result = caption_plan.get(conn, int(path[1]))
+                elif len(path) == 2 and path[0] == 'denoise-plans':
+                    result = denoise_plan.get(conn, int(path[1]))
                 elif len(path) == 3 and path[0] == 'assets' and path[2] == 'transcript':
                     result = caption_words.get(conn, int(path[1]))
                 else:
@@ -70,6 +73,14 @@ class Handler(BaseHTTPRequestHandler):
             with closing(db.connect(self.server.database)) as conn:
                 if path == ['assets']:
                     result = assets.register(conn, data['path'])
+                elif path == ['noise-profiles']:
+                    result = denoise_plan.profile(conn, data['asset_id'], data['start_ms'], data['end_ms'])
+                elif path == ['denoise-plans']:
+                    result = denoise_plan.create(conn, data['project_id'], data['profile_id'],
+                        data.get('strength',1.0), data.get('floor_db',-24), data.get('release_ms',80))
+                elif len(path) == 3 and path[0] == 'denoise-plans' and path[2] in ('render','audition'):
+                    result = denoise_render.render(conn, int(path[1]), data['destination'],
+                        data.get('at_ms',0), data.get('duration_ms'), data.get('block_frames',4096))
                 elif len(path) == 3 and path[0] == 'assets' and path[2] == 'transcript':
                     result = caption_words.replace(conn, int(path[1]), data['words'], data['expected_revision'])
                 elif path == ['caption-plans']:

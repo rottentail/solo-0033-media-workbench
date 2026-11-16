@@ -409,3 +409,41 @@ original timeline/transcript revisions across later editing and service restart;
 new plans use the new versions. Failed exports remove private temporary files,
 and existing targets including dangling symlinks remain untouched. This caption
 workflow neither burns text into video nor changes ordinary media exports.
+
+## Spectral restoration
+
+`POST /noise-profiles` accepts `{asset_id,start_ms,end_ms}` and measures a
+stationary noise-only interval of 100 ms–10 s from a verified original. Profiles
+are immutable and portable across recordings made with the same noise setup.
+The power spectrum uses the same 512-sample sine analysis window as restoration,
+with a 128-sample hop, at stereo 48 kHz. Channel power is averaged over complete
+windows; padding never contributes to the measurement.
+
+`POST /denoise-plans` accepts `{project_id,profile_id,strength,floor_db,release_ms}`.
+Defaults are 1, -24 dB and 80 ms. Strength ranges 0–4, the amplitude floor -60–0 dB,
+and release 1–1000 ms. A plan freezes the complete timeline, gains, measured noise
+and settings; later edits and newly sampled profiles affect only new plans.
+`GET /denoise-plans/{id}` retrieves that frozen version with checksum validation.
+
+`POST /denoise-plans/{id}/render` accepts `{destination}` and writes stereo PCM16
+WAV. The programme must be nonempty and at most 30 s. A joint-channel power ratio
+sets one real, conjugate-symmetric attenuation per bin. The amplitude floor
+preserves residual texture; an instantaneous opening protects new transients,
+while exponential closing avoids abrupt spectral holes. No independent channel
+normalization, phase replacement or output loudness compensation is performed.
+Strength zero is transparent, including the first and last samples. Analysis and
+synthesis windows are normalized by their actual accumulated squared weights.
+Clip gain applies after noise estimation/restoration, preserving the calibration
+and quiet repeated occurrences. The filter clock and history span the programme,
+including cuts; each occurrence contributes its own raw original samples.
+
+`POST /denoise-plans/{id}/audition` additionally accepts `{at_ms,duration_ms}`.
+It delivers exactly the corresponding sample slice of the full WAV, warming the
+causal filter from programme start, with the same frozen plan. `block_frames`
+(1–65536, default 4096) controls I/O only, never the analysis grid or gain history.
+Originals are decoded once per occurrence per request into a private disk spool;
+only bounded FFT and I/O buffers stay in memory. Processing does not hold a
+SQLite write transaction. Accepted original relinks work without changing the
+plan; missing or changed originals fail, and proxies cannot replace originals.
+A failed request removes temporary work, and delivery never replaces an existing
+file. Ordinary stereo mixing and its peak compensation remain separate.
