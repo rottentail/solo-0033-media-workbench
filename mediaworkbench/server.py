@@ -67,6 +67,8 @@ class Handler(BaseHTTPRequestHandler):
                     result = assets.register(conn, data['path'])
                 elif path == ['offline-bundles']:
                     result = bundle_export.create(conn, data['projects'], data['max_media_bytes'], data['destination'])
+                elif path == ['offline-bundle-sets']:
+                    result = bundle_export.create_set(conn, data['projects'], data['volumes'])
                 elif path == ['proxy-store', 'collect']:
                     result = proxy_store.collect(conn, data['directory'], data['max_bytes'])
                 elif path == ['asset-relinks']:

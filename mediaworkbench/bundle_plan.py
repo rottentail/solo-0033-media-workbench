@@ -67,3 +67,12 @@ def manifest(plan, selection):
                      if p['id'] in selected],
         'media': {key: {'path': 'media/'+key+'.mp4', 'size': plan['media'][key]['size'],
                        'sha256': key} for key in selection['media']}}
+
+
+def volume_manifest(plan, allocation, volume):
+    selection = allocation['volumes'][volume]
+    description = manifest(plan, selection)
+    description['volume'] = volume
+    description['volume_count'] = len(allocation['volumes'])
+    description['set_value'] = allocation['value']
+    return description

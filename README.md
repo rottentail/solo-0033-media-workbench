@@ -149,6 +149,23 @@ Existing destinations are protected and private temporary files are removed on
 failure. The archive is independently usable after the catalogue or source
 volumes disappear; it is an audition package, never an original-only delivery.
 
+`POST /offline-bundle-sets` accepts at most twelve weighted `projects` and one
+to three `volumes`, each with its own `max_media_bytes` and new `destination`.
+Each ZIP represents one independent physical medium: an included project must
+have all its media on that volume. A proxy shared within a volume costs bytes
+once; the same proxy needed on two different volumes costs bytes on each.
+Choose the whole set to maximize the total priority of distinct complete
+projects, then minimize total media bytes across volumes, then prefer earlier
+sorted project IDs, then the lexicographically earliest tuple of sorted media
+hashes in input volume order. If several volumes cover a project, assign its
+manifest to the earliest covering volume. Unused volumes contain an empty
+manifest. Each manifest records its volume number/count and the set's value.
+Selected source media are traversed once and streamed into every volume that
+needs them. Frozen revisions and retained versions apply to the complete set;
+corrupt input or failure to publish any member removes only this request's
+already-published members. Existing files remain protected. Single-volume
+bundles and ordinary proxy previews continue to use their original contracts.
+
 Python 3.10+ on Linux or macOS, SQLite and FFmpeg/FFprobe with libx264/AAC support. The segment cache uses POSIX advisory locks. Set `MEDIA_FFMPEG` and `MEDIA_FFPROBE` to executable paths when needed. Start with `python3 -m mediaworkbench.server`; `MEDIA_PORT` (default 8765) and `MEDIA_DATABASE` (default `media-workbench.sqlite3`) configure the service. Keep it bound to loopback: there is no authentication, and the operator may read and write paths accessible to the process.
 
 Existing databases are extended with job and checkpoint tables on opening. Original assets, projects, clips and render records remain readable. Old renders have no resumable job metadata and are available through the original inspection route.
