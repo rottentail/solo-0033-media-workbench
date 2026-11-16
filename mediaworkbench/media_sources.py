@@ -37,14 +37,14 @@ def get(conn, asset_id):
     return result
 
 
-def select(conn, occurrence, purpose='final', tick=None, validated=None):
+def select(conn, occurrence, purpose='final', tick=None, validated=None, receipt=None):
     if purpose not in ('preview', 'final'):
         raise ValueError('unknown media purpose')
     asset = get(conn, occurrence['asset_id'])
     if asset['fingerprint'] != occurrence['fingerprint']:
         raise ValueError('frozen asset identity no longer matches the catalog')
     clip = copy.deepcopy(occurrence)
-    proxy = asset['proxy']
+    proxy = receipt if receipt is not None else asset['proxy']
 
     def matches(path, checksum):
         identity = (path, checksum)
@@ -72,8 +72,18 @@ def select(conn, occurrence, purpose='final', tick=None, validated=None):
     return clip
 
 
-def bind(conn, snapshot, purpose='final', tick=None):
+def bind(conn, snapshot, purpose='final', tick=None, pins=None):
     result = copy.deepcopy(snapshot)
     validated = set()
-    result['clips'] = [select(conn, clip, purpose, tick, validated) for clip in snapshot['clips']]
+    result['clips'] = []
+    receipts = {}
+    for clip in snapshot['clips']:
+        receipt = None
+        if purpose == 'preview' and pins is not None:
+            from . import proxy_store
+            if clip['asset_id'] not in receipts:
+                receipts[clip['asset_id']] = pins.enter_context(
+                    proxy_store.pin(conn, clip['asset_id'])) or {}
+            receipt = receipts[clip['asset_id']]
+        result['clips'].append(select(conn, clip, purpose, tick, validated, receipt))
     return result

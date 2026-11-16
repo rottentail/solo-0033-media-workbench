@@ -1,3 +1,26 @@
+## Bounded proxy retention
+
+`POST /proxy-store/collect` accepts an existing `directory` and nonnegative
+`max_bytes`. It removes the oldest retired service-owned proxy files until
+that store reaches the requested byte budget, preserving current receipts and
+files used by an in-flight preview. A refresh and offline preview can proceed
+while collection runs; unrelated timeline edits do not wait for a preview to
+finish. `remaining_bytes` reports tracked file bytes; `over_budget` is true
+when protected or replaced files prevent reaching the requested budget.
+Unregistered files are never removed. Earlier databases register their previous
+accepted receipt when it is next refreshed. This is an explicit soft retention
+budget, not an admission quota on encoders or free disk space.
+
+Previews protect the exact selected proxy version through their final source
+validation and publication. Protection is owned by the preview process and is
+released on failure or process exit, including forced termination. A subsequent
+collection can reclaim the retired version after reopening the service. The
+current accepted version remains available while a new version is encoding or
+if that refresh fails. Final exports still require the original source.
+Collection does not repair externally replaced service files; those paths are
+reported for operator inspection and preserved. Service store directories are
+trusted: external writers must not rename files while collection is running.
+
 # Media Workbench
 
 ## Saved overlapping transitions
@@ -37,7 +60,7 @@ proxy outside the database writer transaction. A new request reserves a new
 generation; a late older request cannot replace the newer one. The last good
 proxy remains usable during a refresh and after a failed refresh. Proxy files
 are immutable and earlier accepted files are retained so in-flight previews
-can finish; proxy-store retention is managed by the operator.
+can finish; proxy-store retention is explicitly requested by the operator.
 
 `POST /projects/{id}/preview` with `{"destination":"/new/preview.mp4"}`
 renders the current timeline using verified proxies, falling back to verified

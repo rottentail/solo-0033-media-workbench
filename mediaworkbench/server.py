@@ -7,7 +7,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse
 from . import assets, db, timeline, renders, worker, jobs
 from . import audio_layers, mix_plan, mix_render
-from . import media_sources, proxies, relinking
+from . import media_sources, proxies, relinking, proxy_store
 from . import transition_plan, transition_render
 
 
@@ -54,6 +54,8 @@ class Handler(BaseHTTPRequestHandler):
             with closing(db.connect(self.server.database)) as conn:
                 if path == ['assets']:
                     result = assets.register(conn, data['path'])
+                elif path == ['proxy-store', 'collect']:
+                    result = proxy_store.collect(conn, data['directory'], data['max_bytes'])
                 elif path == ['asset-relinks']:
                     result = relinking.replace(conn, data['locations'])
                 elif len(path) == 3 and path[0] == 'assets' and path[2] == 'proxy':

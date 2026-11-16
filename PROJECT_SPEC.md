@@ -68,3 +68,7 @@ padding silent. Private disk materialization permits each stream to decode
 once, followed by bounded per-frame and per-block synthesis. Saved plans,
 source identity checks, failure cleanup and no-overwrite output publication
 remain enforced.
+
+## Proxy retention
+
+Explicit byte-budget collection tracks published proxy versions in additive SQLite tables. Readers pin the selected immutable version across refresh and final validation. Process exit releases protection; later collection reclaims retired versions while preserving the current receipt, foreign paths and ongoing previews. This soft retention budget can remain exceeded while protected bytes are in use.

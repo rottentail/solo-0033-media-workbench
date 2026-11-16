@@ -41,6 +41,11 @@ CREATE TABLE IF NOT EXISTS asset_proxies (
     generation INTEGER NOT NULL DEFAULT 0, ready_generation INTEGER,
     path TEXT, fingerprint TEXT, source_fingerprint TEXT, metadata TEXT, error TEXT
 );
+CREATE TABLE IF NOT EXISTS proxy_files (
+    path TEXT PRIMARY KEY, asset_id INTEGER NOT NULL REFERENCES assets(id),
+    fingerprint TEXT NOT NULL, size INTEGER NOT NULL, device INTEGER NOT NULL,
+    inode INTEGER NOT NULL, created INTEGER NOT NULL
+);
 CREATE TABLE IF NOT EXISTS transition_plans (
     id INTEGER PRIMARY KEY,
     project_id INTEGER NOT NULL REFERENCES projects(id), revision INTEGER NOT NULL,

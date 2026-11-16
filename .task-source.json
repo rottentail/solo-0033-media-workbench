@@ -258,6 +258,15 @@
         "transition_render.pictures"
       ],
       "available": true
+    },
+    {
+      "family": "代理生命周期和配额回收",
+      "occupied_by": [
+        "proxy_store.pin",
+        "proxy_store.collect",
+        "proxies.create"
+      ],
+      "available": true
     }
   ],
   "extension_seams": [
@@ -309,6 +318,13 @@
       "entry": "POST /transition-plans",
       "distinct_outcome": "短中间镜头同时重叠时的线性光与连续采样音画合成",
       "mechanism": "exact_clock_multiway_transitions"
+    },
+    {
+      "id": "proxy-retention",
+      "anchor": "proxy_store.collect",
+      "entry": "POST /proxy-store/collect",
+      "distinct_outcome": "离线在途预览跨刷新保留精确代理版本，同时进程终止后允许预算回收",
+      "mechanism": "process_owned_rendition_retention"
     }
   ],
   "tension_points": [
@@ -341,6 +357,11 @@
       "workflow_id": "overlap-transitions",
       "description": "毫秒级剪辑及多路重叠必须共用连续时间，但视频帧离散且整片缓存会超内存",
       "observable_failure": "转场暗带、中间镜头消失、音画接点漂移或长片内存随帧数增长"
+    },
+    {
+      "workflow_id": "proxy-retention",
+      "description": "可随时刷新和清理，但慢速预览不能丢失已选版本，退出预览也不能永久占住磁盘",
+      "observable_failure": "在途预览丢文件或旧代理无法回收"
     }
   ],
   "prompt_anchors": []

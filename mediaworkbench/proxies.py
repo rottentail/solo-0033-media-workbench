@@ -1,10 +1,11 @@
 """Publish immutable audition proxies while preserving original-only delivery."""
+from contextlib import ExitStack
 import json
 import os
 from pathlib import Path
 import tempfile
 import uuid
-from . import db, encoder, media_sources, planner, timeline
+from . import db, encoder, media_sources, planner, timeline, proxy_store
 from .assets import fingerprint
 from .tools import run
 
@@ -57,6 +58,10 @@ def create(conn, asset_id, directory):
                 if (current['proxy']['generation'] != generation
                         or current['fingerprint'] != asset['fingerprint']):
                     raise ValueError('proxy request was superseded')
+                previous = current['proxy']
+                if previous['path'] and Path(previous['path']).exists():
+                    proxy_store.remember(conn, asset_id, previous['path'], previous['fingerprint'])
+                proxy_store.remember(conn, asset_id, published, receipt['fingerprint'])
                 conn.execute('UPDATE asset_proxies SET ready_generation=?,path=?,fingerprint=?,'
                     'source_fingerprint=?,metadata=?,error=NULL WHERE asset_id=?',
                     (generation, str(published), receipt['fingerprint'], asset['fingerprint'],
@@ -74,7 +79,12 @@ def create(conn, asset_id, directory):
 
 
 def preview(conn, project_id, destination):
-    snapshot = media_sources.bind(conn, timeline.snapshot(conn, project_id), 'preview')
+    with ExitStack() as pins:
+        snapshot = media_sources.bind(conn, timeline.snapshot(conn, project_id), 'preview', pins=pins)
+        return _preview(snapshot, destination)
+
+
+def _preview(snapshot, destination):
     plan = planner.prepare(snapshot)
     destination = Path(destination).expanduser().absolute()
     destination = destination.parent.resolve() / destination.name
@@ -85,6 +95,6 @@ def preview(conn, project_id, destination):
         planner.verify_sources(plan)
         checksum = fingerprint(output)
         os.link(output, destination)
-    return {'project_id': project_id, 'revision': snapshot['project']['revision'],
+    return {'project_id': snapshot['project']['id'], 'revision': snapshot['project']['revision'],
         'output_path': str(destination), 'sha256': checksum,
         'renditions': [clip['rendition'] for clip in snapshot['clips']]}

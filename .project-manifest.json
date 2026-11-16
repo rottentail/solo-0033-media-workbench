@@ -118,6 +118,11 @@
       "id": "transition_render",
       "path": "mediaworkbench/transition_render.py",
       "responsibility": "一次物化和有界逐帧合成及受保护发布"
+    },
+    {
+      "id": "proxy_store",
+      "path": "mediaworkbench/proxy_store.py",
+      "responsibility": "代理文件持久清单、逐版本进程读保护和按预算显式回收"
     }
   ],
   "workflows": [
@@ -266,6 +271,26 @@
         "media_sources",
         "timeline",
         "planner",
+        "db",
+        "server"
+      ]
+    },
+    {
+      "id": "proxy-retention",
+      "name": "离线代理刷新与有界回收",
+      "entry": "POST /proxy-store/collect",
+      "steps": [
+        "刷新时保留新旧版本的持久字节清单",
+        "预览选定不可变版本并持有进程读保护",
+        "按预算跳过当前及在用版本回收退役字节"
+      ],
+      "success": "离线预览与刷新、编辑和清理并行；退出后旧代理可回收",
+      "failure": "替换路径及非托管文件保持不动；预算受保护文件阻挡时明确报告",
+      "verification": "独立宿主机进程交错和真实音视频输出探针",
+      "module_ids": [
+        "proxy_store",
+        "media_sources",
+        "proxies",
         "db",
         "server"
       ]
