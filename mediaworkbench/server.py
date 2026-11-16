@@ -11,6 +11,7 @@ from . import media_sources, proxies, relinking, proxy_store
 from . import transition_plan, transition_render, retime_plan, retime_render
 from . import multicam_plan, multicam_render
 from . import spatial_plan, spatial_render
+from . import bundle_export
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -64,6 +65,8 @@ class Handler(BaseHTTPRequestHandler):
             with closing(db.connect(self.server.database)) as conn:
                 if path == ['assets']:
                     result = assets.register(conn, data['path'])
+                elif path == ['offline-bundles']:
+                    result = bundle_export.create(conn, data['projects'], data['max_media_bytes'], data['destination'])
                 elif path == ['proxy-store', 'collect']:
                     result = proxy_store.collect(conn, data['directory'], data['max_bytes'])
                 elif path == ['asset-relinks']:

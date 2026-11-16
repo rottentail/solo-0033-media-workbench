@@ -124,6 +124,31 @@ A trusted-operator HTTP service for assembling sequential media into normalized 
 
 ## Runtime
 
+`POST /offline-bundles` creates a portable ZIP for an offline editing trip. Send
+`projects` as one to sixteen unique `{project_id, priority}` objects (integer
+priorities 1–1000), `max_media_bytes` as a nonnegative integer, and a new absolute
+`destination`. Each candidate must have a nonempty timeline and a ready proxy
+for every occurrence; unavailable candidates are reported and excluded. Original
+volumes may be offline. The package includes whole project timelines, preserving
+their intake revision, trims, ordering and gains, plus immutable selected proxy
+bytes. Refreshing proxies or editing timelines during packing affects later
+requests, never the request already captured. Database writes remain available
+during optimization and copying, and collection respects the retained versions.
+
+Capacity measures the sum of unique proxy byte lengths, excluding ZIP headers
+and the manifest. The selection maximizes the sum of priorities of all fully
+covered candidates, including those completed by another candidate's shared
+media. Sharing is determined by proxy SHA-256, not occurrence count. Ties prefer
+fewer media bytes, then lexicographically earlier sorted project IDs. A partial
+project earns no value and is omitted. No fitting projects produces an empty
+package. The archive contains `manifest.json` and `media/<sha256>.mp4` once per
+unique rendition; clip paths are package-relative. The manifest records selected
+snapshots, their priorities, value and actual media bytes. Selected files are
+read once in bounded chunks; corruption aborts without publishing a target.
+Existing destinations are protected and private temporary files are removed on
+failure. The archive is independently usable after the catalogue or source
+volumes disappear; it is an audition package, never an original-only delivery.
+
 Python 3.10+ on Linux or macOS, SQLite and FFmpeg/FFprobe with libx264/AAC support. The segment cache uses POSIX advisory locks. Set `MEDIA_FFMPEG` and `MEDIA_FFPROBE` to executable paths when needed. Start with `python3 -m mediaworkbench.server`; `MEDIA_PORT` (default 8765) and `MEDIA_DATABASE` (default `media-workbench.sqlite3`) configure the service. Keep it bound to loopback: there is no authentication, and the operator may read and write paths accessible to the process.
 
 Existing databases are extended with job and checkpoint tables on opening. Original assets, projects, clips and render records remain readable. Old renders have no resumable job metadata and are available through the original inspection route.
