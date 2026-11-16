@@ -9,27 +9,8 @@ from .tools import run
 
 
 def materialize(plan, directory, stack):
-    pictures = []
-    audio = []
-    frame_bytes = plan['width'] * plan['height'] * 3
-    for position, clip in enumerate(plan['clips']):
-        output = Path(directory) / f'occurrence-{position}.rgb'
-        duration = (clip['end_ms'] - clip['start_ms']) / 1000
-        run('ffmpeg', ['-v', 'error', '-y', '-threads', '1', '-filter_threads', '1',
-            '-ss', str(clip['start_ms'] / 1000), '-i', clip['path'], '-t', str(duration),
-            '-map', '0:v:0', '-an', '-vf',
-            'setpts=PTS-STARTPTS,scale=640:360:force_original_aspect_ratio=decrease,'
-            'pad=640:360:(ow-iw)/2:(oh-ih)/2,fps=25,setsar=1',
-            '-pix_fmt', 'rgb24', '-f', 'rawvideo', str(output)])
-        if not output.stat().st_size or output.stat().st_size % frame_bytes:
-            raise ValueError('decoder returned incomplete transition video')
-        pictures.append({'handle': stack.enter_context(output.open('rb')),
-                         'frames': output.stat().st_size // frame_bytes})
-        pcm = stack.enter_context(audio_signal.materialized(clip))
-        audio.append(stack.enter_context(pcm.open('rb')))
-        if fingerprint(clip['path']) != clip['fingerprint']:
-            raise ValueError('source changed during transition decoding')
-    return pictures, audio
+    from .retime_render import materialize as shared_materialize
+    return shared_materialize(plan, directory, stack)
 
 
 def pictures(plan, sources):

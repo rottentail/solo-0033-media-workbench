@@ -137,7 +137,7 @@
     {
       "id": "retime_render",
       "path": "mediaworkbench/retime_render.py",
-      "responsibility": "逐次片段映射到输出帧并有界导出"
+      "responsibility": "逐次音视频流单次物化、复用存储与输出采样"
     }
   ],
   "workflows": [
