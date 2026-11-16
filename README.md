@@ -1,3 +1,32 @@
+## Source-position speed ramps
+
+`POST /retime-plans` accepts `project_id` and `curves`, one per trimmed timeline
+occurrence. Each curve has two to sixteen `{"at_ms":0,"speed":1}` points,
+starting at zero and ending at that occurrence's trimmed duration. Positions
+are relative to the source trim; speeds range from 0.25 to 4 and vary linearly
+with source position between knots. For example, a 400 ms occurrence can use
+`[{"at_ms":0,"speed":0.5},{"at_ms":400,"speed":2}]`.
+`GET /retime-plans/{id}` inspects the frozen plan, and
+`POST /retime-plans/{id}/render` exports to a new `destination`.
+
+The programme integrates the inverse speed over source distance, rather than
+averaging endpoint speeds or treating the knots as programme positions. Audio
+uses continuous fractional stereo sampling and changes pitch with speed;
+there is no time-stretch or pitch-preservation claim. Each occurrence retains
+its own trim, curve and gain, including repeated use of the same original.
+Video chooses the corresponding local source frame at each output frame
+midpoint. Fractional durations carry across cuts; only the final programme is
+padded to a 25 fps boundary, holding its last picture and padding audio with
+silence. A plan supports one to eight occurrences and at most 30 seconds of
+resulting programme. Saved plans remain unchanged by subsequent timeline edits
+or a service restart; verified original relocation remains supported.
+
+Each occurrence's video and audio is decoded once to temporary disk and
+sampled with bounded reads. Source changes, missing originals, truncated stems
+and existing output paths fail without overwriting destination files; private
+temporary files are removed on failure. Proxy preview and sequential and
+transition exports keep their separate behaviour.
+
 ## Bounded proxy retention
 
 `POST /proxy-store/collect` accepts an existing `directory` and nonnegative

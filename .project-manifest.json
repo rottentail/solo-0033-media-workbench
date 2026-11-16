@@ -123,6 +123,21 @@
       "id": "proxy_store",
       "path": "mediaworkbench/proxy_store.py",
       "responsibility": "代理文件持久清单、逐版本进程读保护和按预算显式回收"
+    },
+    {
+      "id": "retime_plan",
+      "path": "mediaworkbench/retime_plan.py",
+      "responsibility": "源位置速度积分、逆映射与冻结持久方案"
+    },
+    {
+      "id": "retime_signal",
+      "path": "mediaworkbench/retime_signal.py",
+      "responsibility": "按连续源坐标采样双声道与增益"
+    },
+    {
+      "id": "retime_render",
+      "path": "mediaworkbench/retime_render.py",
+      "responsibility": "逐次片段映射到输出帧并有界导出"
     }
   ],
   "workflows": [
@@ -291,6 +306,28 @@
         "proxy_store",
         "media_sources",
         "proxies",
+        "db",
+        "server"
+      ]
+    },
+    {
+      "id": "source-speed-ramp",
+      "name": "源位置速度曲线的变速音画导出",
+      "entry": "POST /retime-plans",
+      "steps": [
+        "在源片裁切内冻结速度点",
+        "积分得到跨剪辑连续节目时间",
+        "按逆时间映射输出画面及连续声音"
+      ],
+      "success": "重复剪入拥有独立速度、裁切和音量，保存方案跨重开与编辑保持一致",
+      "failure": "非法曲线无落盘、变动原片拒绝且目标保留",
+      "verification": "独立源时间映射、样本和真实媒体输出探针",
+      "module_ids": [
+        "retime_plan",
+        "retime_signal",
+        "retime_render",
+        "transition_render",
+        "media_sources",
         "db",
         "server"
       ]

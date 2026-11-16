@@ -72,3 +72,7 @@ remain enforced.
 ## Proxy retention
 
 Explicit byte-budget collection tracks published proxy versions in additive SQLite tables. Readers pin the selected immutable version across refresh and final validation. Process exit releases protection; later collection reclaims retired versions while preserving the current receipt, foreign paths and ongoing previews. This soft retention budget can remain exceeded while protected bytes are in use.
+
+## Source-position speed ramps
+
+Saved per-occurrence speed curves vary linearly in trimmed source position. Integration of inverse speed gives exact programme duration; inverse integration maps programme samples and video midpoints back to source positions. Stereo interpolation, per-occurrence trims and gains, final-only frame padding, original identity checks and once-per-stream disk materialization remain part of the delivery contract.

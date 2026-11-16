@@ -267,6 +267,15 @@
         "proxies.create"
       ],
       "available": true
+    },
+    {
+      "family": "源位置速度坡度和音画重采样",
+      "occupied_by": [
+        "retime_plan.curve",
+        "retime_signal.audio_blocks",
+        "retime_render.pictures"
+      ],
+      "available": true
     }
   ],
   "extension_seams": [
@@ -325,6 +334,13 @@
       "entry": "POST /proxy-store/collect",
       "distinct_outcome": "离线在途预览跨刷新保留精确代理版本，同时进程终止后允许预算回收",
       "mechanism": "process_owned_rendition_retention"
+    },
+    {
+      "id": "source-speed-ramp",
+      "anchor": "retime_plan.create",
+      "entry": "POST /retime-plans",
+      "distinct_outcome": "按源片位置定义速度变化，积分求逆后各次剪入独立重采样",
+      "mechanism": "source_domain_speed_integral_inverse"
     }
   ],
   "tension_points": [
@@ -362,6 +378,11 @@
       "workflow_id": "proxy-retention",
       "description": "可随时刷新和清理，但慢速预览不能丢失已选版本，退出预览也不能永久占住磁盘",
       "observable_failure": "在途预览丢文件或旧代理无法回收"
+    },
+    {
+      "workflow_id": "source-speed-ramp",
+      "description": "源位置速度变化与离散输出的映射不能局部线性化；单次解码须支持有界随机采样",
+      "observable_failure": "变速进出点不准、声音阶梯、复用速度串扰或帧位置错误"
     }
   ],
   "prompt_anchors": []

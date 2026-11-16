@@ -46,6 +46,10 @@ CREATE TABLE IF NOT EXISTS proxy_files (
     fingerprint TEXT NOT NULL, size INTEGER NOT NULL, device INTEGER NOT NULL,
     inode INTEGER NOT NULL, created INTEGER NOT NULL
 );
+CREATE TABLE IF NOT EXISTS retime_plans (
+    id INTEGER PRIMARY KEY, project_id INTEGER NOT NULL REFERENCES projects(id),
+    revision INTEGER NOT NULL, payload TEXT NOT NULL, payload_sha256 TEXT NOT NULL
+);
 CREATE TABLE IF NOT EXISTS transition_plans (
     id INTEGER PRIMARY KEY,
     project_id INTEGER NOT NULL REFERENCES projects(id), revision INTEGER NOT NULL,
