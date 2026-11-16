@@ -305,7 +305,7 @@ original poses including both endpoints. It minimizes the greatest angular
 orientation error at all original observation times, measured against shortest
 spherical interpolation between retained poses. The error is a rotation angle,
 independent of quaternion sign. `original_poses`, retained `poses`, and
-`max_error_deg` are saved together. Equal error chooses the lexicographically
+`max_error_deg` are saved together. Errors within 1e-9 degrees are tied. Equal error chooses the lexicographically
 first tuple of retained input indices (across all allowed node counts).
 Both audition and full delivery consume the retained frozen trajectory, so
 an editor hears exactly what the capacity-limited device will receive.

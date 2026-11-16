@@ -79,8 +79,23 @@ def compact(points, limit):
                     choices.append((max(old[0], errors[previous, end]), old[1]+(end,)))
             if choices:
                 states[count, end] = min(choices)
-    error, selected = min(states[count, len(points)-1] for count in range(2, limit+1))
-    return [points[index] for index in selected], math.degrees(error)
+    error = min(states[count, len(points)-1][0] for count in range(2, limit+1))
+    # Once the bottleneck is known, recover lexicographic ties separately.
+    # A cheaper prefix can otherwise discard an earlier prefix whose larger
+    # error is hidden by a later bottleneck. Ignore angular roundoff below 1e-9 degrees.
+    threshold = error + math.radians(1e-9)
+    paths = {(1, 0): (0,)}
+    for count in range(2, limit+1):
+        for end in range(count-1, len(points)):
+            candidates = [paths[count-1, previous]+(end,)
+                for previous in range(count-2, end)
+                if (count-1, previous) in paths and errors[previous, end] <= threshold]
+            if candidates:
+                paths[count, end] = min(candidates)
+    selected = min(paths[count, len(points)-1] for count in range(2, limit+1)
+                   if (count, len(points)-1) in paths)
+    actual = max(errors[a, b] for a, b in zip(selected, selected[1:]))
+    return [points[index] for index in selected], math.degrees(actual)
 
 
 def create(conn, project_id, asset_id, start_ms, end_ms, convention, keyframes, max_poses=64):
