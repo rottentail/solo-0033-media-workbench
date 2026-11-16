@@ -10,8 +10,12 @@ RATE = 48000
 def unit(values):
     if len(values) != 4 or any(type(v) not in (int, float) or not math.isfinite(v) for v in values):
         raise ValueError('pose must be a finite quaternion [w,x,y,z]')
+    scale = max(abs(v) for v in values)
+    if scale == 0:
+        raise ValueError('pose quaternion has no orientation')
+    values = [v/scale for v in values]
     norm = math.hypot(*values)
-    if norm < 1e-12:
+    if scale*norm < 1e-12:
         raise ValueError('pose quaternion has no orientation')
     values = [v/norm for v in values]
     # Canonical representatives also make exactly half-turn paths independent
@@ -42,7 +46,11 @@ def orientation(plan, sample):
         if sample <= right['sample']:
             t = (sample-left['sample'])/(right['sample']-left['sample'])
             a, b = unit(left['q']), unit(right['q'])
-            dot = sum(x*y for x, y in zip(a, b))
+            dot = math.fsum(x*y for x, y in zip(a, b))
+            # An exact half-turn may acquire a few ulps during normalization.
+            # Resolve only this roundoff-sized tie using canonical signs.
+            if abs(dot) <= 1e-15:
+                dot = 0.0
             if dot < 0:
                 b, dot = [-x for x in b], -dot
             tangent = [y-dot*x for x, y in zip(a, b)]

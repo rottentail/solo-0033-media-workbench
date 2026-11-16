@@ -275,6 +275,7 @@ X-front, Y-left, Z-up coordinates. Equivalent signed quaternions describe the
 same orientation. Adjacent poses take the shortest spherical path at constant
 angular speed; a dot-zero half-turn uses canonical endpoint signs (first nonzero
 quaternion component positive), so equivalent input signs give the same path.
+Dot magnitudes at most 1e-15 count as a half-turn roundoff tie.
 
 AmbiX input is ACN/SN3D `[W,Y,Z,X]`; FuMa input is maxN `[W,X,Y,Z]`, with its
 W coefficient scaled by sqrt(2) on conversion to SN3D. Directional coefficients
