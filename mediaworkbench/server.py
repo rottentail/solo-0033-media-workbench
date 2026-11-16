@@ -95,7 +95,8 @@ class Handler(BaseHTTPRequestHandler):
                         data.get('max_cuts',8), data.get('cut_cost',0))
                 elif path == ['spatial-plans']:
                     result = spatial_plan.create(conn, data['project_id'], data['asset_id'],
-                        data['start_ms'], data['end_ms'], data['convention'], data['keyframes'])
+                        data['start_ms'], data['end_ms'], data['convention'], data['keyframes'],
+                        data.get('max_poses',64))
                 elif len(path) == 3 and path[0] == 'spatial-plans' and path[2] == 'render':
                     result = spatial_render.render(conn, int(path[1]), data['destination'])
                 elif len(path) == 3 and path[0] == 'spatial-plans' and path[2] == 'audition':

@@ -298,3 +298,14 @@ Auditioning a later interval uses that interval's original listener poses,
 without restarting the motion. Its samples match the corresponding slice of
 full delivery, so the editor can inspect any passage before handing over the
 unchanged frozen plan. Excerpts also retain all four soundfield channels.
+
+A delivery device can impose `max_poses` (2–64, default 64). When the recorded
+trajectory exceeds this capacity, the frozen plan selects a subset of the
+original poses including both endpoints. It minimizes the greatest angular
+orientation error at all original observation times, measured against shortest
+spherical interpolation between retained poses. The error is a rotation angle,
+independent of quaternion sign. `original_poses`, retained `poses`, and
+`max_error_deg` are saved together. Equal error chooses the lexicographically
+first tuple of retained input indices (across all allowed node counts).
+Both audition and full delivery consume the retained frozen trajectory, so
+an editor hears exactly what the capacity-limited device will receive.
