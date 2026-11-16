@@ -127,7 +127,7 @@
     {
       "id": "retime_plan",
       "path": "mediaworkbench/retime_plan.py",
-      "responsibility": "源位置速度积分、逆映射与冻结持久方案"
+      "responsibility": "源位置速度积分、往返逆映射与冻结持久方案"
     },
     {
       "id": "retime_signal",

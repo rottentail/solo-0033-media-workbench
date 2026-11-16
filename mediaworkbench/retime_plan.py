@@ -44,16 +44,21 @@ def schedule(snapshot, curves):
     if not 1 <= len(clips) <= 8 or not isinstance(curves, list) or len(curves) != len(clips):
         raise ValueError('one speed curve is required per occurrence, at most eight')
     occurrences, cursor = [], 0.0
-    for index, (clip, knots) in enumerate(zip(clips, curves)):
+    for index, (clip, specification) in enumerate(zip(clips, curves)):
+        knots = specification['points'] if isinstance(specification, dict) else specification
+        passes = specification.get('passes', 1) if isinstance(specification, dict) else 1
+        if type(passes) is not int or not 1 <= passes <= 3:
+            raise ValueError('retime passes must be between one and three')
         duration = clip['end_ms'] - clip['start_ms']
         if duration < 40:
             raise ValueError('retimed occurrences must be at least 40 ms long')
         segments, extent = curve(duration, knots)
         occurrence = copy.deepcopy(clip)
-        occurrence.update(occurrence=index, at_sample=cursor, stop_sample=cursor + extent,
-                          speed_segments=segments, source_samples=duration * 48)
+        occurrence.update(occurrence=index, at_sample=cursor, stop_sample=cursor + extent * passes,
+                          speed_segments=segments, pass_samples=extent, passes=passes,
+                          source_samples=duration * 48)
         occurrences.append(occurrence)
-        cursor += extent
+        cursor += extent * passes
     if not 0 < cursor <= RATE * 30:
         raise ValueError('retimed programme must be at most 30 seconds')
     frames = math.ceil(cursor / FRAME_SAMPLES - 1e-12)
@@ -68,6 +73,11 @@ def source_position(clip, programme_sample):
     local = programme_sample - clip['at_sample']
     if not 0 <= local < clip['stop_sample'] - clip['at_sample']:
         return None
+    pass_samples = clip.get('pass_samples', clip['stop_sample'] - clip['at_sample'])
+    pass_index = min(clip.get('passes', 1) - 1, int(local // pass_samples))
+    local -= pass_index * pass_samples
+    if pass_index % 2:
+        local = max(0.0, pass_samples - local - 1e-7)
     segments = clip['speed_segments']
     segment = next((item for item in segments if local < item['stop']), segments[-1])
     seconds = max(0.0, local - segment['at']) / RATE

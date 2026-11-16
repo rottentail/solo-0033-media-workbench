@@ -14,6 +14,12 @@ averaging endpoint speeds or treating the knots as programme positions. Audio
 uses continuous fractional stereo sampling and changes pitch with speed;
 there is no time-stretch or pitch-preservation claim. Each occurrence retains
 its own trim, curve and gain, including repeated use of the same original.
+A curve can alternatively be an object with `points` (the same knot list)
+and `passes` from one to three. The first pass plays forward, the second plays
+backwards over the same trimmed action and source-position speed curve, and
+the third plays forward again. Every pass retains the occurrence gain. A
+return pass revisits the same decoded source, rather than decoding a second
+time. Pass boundaries preserve their fractional programme durations.
 Video chooses the corresponding local source frame at each output frame
 midpoint. Fractional durations carry across cuts; only the final programme is
 padded to a 25 fps boundary, holding its last picture and padding audio with

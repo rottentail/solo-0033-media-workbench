@@ -76,3 +76,5 @@ Explicit byte-budget collection tracks published proxy versions in additive SQLi
 ## Source-position speed ramps
 
 Saved per-occurrence speed curves vary linearly in trimmed source position. Integration of inverse speed gives exact programme duration; inverse integration maps programme samples and video midpoints back to source positions. Stereo interpolation, per-occurrence trims and gains, final-only frame padding, original identity checks and once-per-stream disk materialization remain part of the delivery contract.
+
+Retime curves also support one to three alternating forward/reverse passes of the same trimmed action, preserving source-position speed and gain while decoding each occurrence stream once. Reverse passes revisit materialized source data with bounded reads.
