@@ -2,6 +2,7 @@
 import os
 import shutil
 import subprocess
+import time
 
 class ToolError(ValueError):
     pass
@@ -12,11 +13,26 @@ def binary(name):
         raise ToolError(f'{name} unavailable; set MEDIA_{name.upper()} to its executable')
     return candidate
 
-def run(name, arguments, timeout=120):
-    try:
-        result = subprocess.run([binary(name), *arguments], stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=timeout, check=False)
-    except subprocess.TimeoutExpired as exc:
-        raise ToolError(f'{name} timed out') from exc
-    if result.returncode:
-        raise ToolError(result.stderr.decode('utf-8', 'replace')[-4000:])
-    return result.stdout
+def run(name, arguments, timeout=120, tick=None):
+    with subprocess.Popen([binary(name), *arguments], stdout=subprocess.PIPE,
+                          stderr=subprocess.PIPE) as process:
+        deadline = time.monotonic() + timeout
+        try:
+            while True:
+                if tick is not None:
+                    tick()
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    raise ToolError(f'{name} timed out')
+                try:
+                    stdout, stderr = process.communicate(timeout=min(.1, remaining))
+                    break
+                except subprocess.TimeoutExpired:
+                    continue
+        except BaseException:
+            process.kill()
+            process.communicate()
+            raise
+    if process.returncode:
+        raise ToolError(stderr.decode('utf-8', 'replace')[-4000:])
+    return stdout

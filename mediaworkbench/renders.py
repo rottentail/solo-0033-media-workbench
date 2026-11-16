@@ -1,35 +1,38 @@
-"""Render state and atomic publication of outputs."""
-import json
+"""Synchronous exports and durable, explicitly driven render jobs."""
 import os
-import tempfile
 from pathlib import Path
-from . import timeline, planner, encoder
+from . import jobs, publication, worker
 
-def create(conn, project_id, destination):
-    destination = Path(destination).expanduser().resolve()
-    if destination.exists():
+
+def queue(conn, project_id, destination, cache_root=None):
+    destination = Path(destination).expanduser().absolute()
+    # Keep the final path component intact so dangling symlinks are protected.
+    destination = destination.parent.resolve() / destination.name
+    if os.path.lexists(destination):
         raise ValueError('destination already exists')
     if not destination.parent.is_dir():
         raise ValueError('destination directory does not exist')
-    frozen = planner.prepare(timeline.snapshot(conn, project_id))
-    with conn:
-        cur = conn.execute('INSERT INTO renders(project_id,revision,status,snapshot) VALUES (?,?,?,?)', (project_id, frozen['project']['revision'], 'running', json.dumps(frozen)))
-    render_id = cur.lastrowid
-    try:
-        with tempfile.TemporaryDirectory(prefix='.media-render-', dir=destination.parent) as tmp:
-            output = encoder.render(frozen, tmp)
-            # Hard link makes publication fail if a concurrent writer created the destination.
-            os.link(output, destination)
-        with conn:
-            conn.execute('UPDATE renders SET status=?,output_path=? WHERE id=?', ('completed',str(destination),render_id))
-    except Exception as exc:
-        with conn:
-            conn.execute('UPDATE renders SET status=?,error=? WHERE id=?', ('failed',str(exc)[:4000],render_id))
-        raise
-    return {'id': render_id, 'status': 'completed', 'output_path': str(destination), 'revision': frozen['project']['revision']}
+    database = next((row[2] for row in conn.execute('PRAGMA database_list') if row[1] == 'main'), '')
+    parent = Path(database).parent if database else destination.parent
+    root = Path(cache_root).expanduser().resolve() if cache_root else parent / '.media-workbench-cache'
+    return jobs.enqueue(conn, project_id, destination, root)
+
+
+def create(conn, project_id, destination):
+    job = queue(conn, project_id, destination)
+    result = worker.run(conn, job['id'])
+    return {key: result[key] for key in ('id', 'status', 'output_path', 'revision')}
+
+
+def cancel(conn, render_id):
+    return publication.cancel(conn, render_id)
+
 
 def get(conn, render_id):
     row = conn.execute('SELECT * FROM renders WHERE id=?', (render_id,)).fetchone()
     if not row:
         raise ValueError('render not found')
-    return dict(row)
+    result = dict(row)
+    if conn.execute('SELECT 1 FROM render_jobs WHERE render_id=?', (render_id,)).fetchone():
+        result = jobs.get(conn, render_id)
+    return result

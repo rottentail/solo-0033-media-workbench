@@ -4,11 +4,13 @@ import json
 from pathlib import Path
 from .tools import run
 
-def fingerprint(path):
+def fingerprint(path, tick=None):
     digest = hashlib.sha256()
     with open(path, 'rb') as source:
         for chunk in iter(lambda: source.read(1024 * 1024), b''):
             digest.update(chunk)
+            if tick is not None:
+                tick()
     return digest.hexdigest()
 
 def register(conn, path):
