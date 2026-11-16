@@ -52,8 +52,11 @@ def orientation(plan, sample):
 
 
 def angular_distance(a, b):
-    cosine = abs(sum(x*y for x, y in zip(a, b)))
-    return 2*math.acos(min(1, max(0, cosine)))
+    if sum(x*y for x, y in zip(a, b)) < 0:
+        b = [-value for value in b]
+    difference = math.sqrt(sum((x-y)**2 for x, y in zip(a, b)))
+    together = math.sqrt(sum((x+y)**2 for x, y in zip(a, b)))
+    return 4*math.atan2(difference, together)
 
 
 def compact(points, limit):
