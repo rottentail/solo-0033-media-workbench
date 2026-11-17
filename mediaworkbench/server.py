@@ -20,6 +20,7 @@ from . import master_plan, master_render
 from . import color_plan, color_render
 from . import stretch_plan, stretch_render
 from . import resample_plan, resample_render
+from . import repair_plan, repair_render
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -57,6 +58,8 @@ class Handler(BaseHTTPRequestHandler):
                     result = spatial_plan.get(conn, int(path[1]))
                 elif len(path) == 2 and path[0] == 'caption-plans':
                     result = caption_plan.get(conn, int(path[1]))
+                elif len(path) == 2 and path[0] == 'repair-plans':
+                    result = repair_plan.get(conn, int(path[1]))
                 elif len(path) == 2 and path[0] == 'resample-plans':
                     result = resample_plan.get(conn, int(path[1]))
                 elif len(path) == 2 and path[0] == 'stretch-plans':
@@ -93,6 +96,12 @@ class Handler(BaseHTTPRequestHandler):
                     result = assets.register(conn, data['path'])
                 elif len(path)==3 and path[0]=='projects' and path[2]=='music':
                     result = music_plan.catalogue(conn,int(path[1]),data['sections'],data['joins'],data['expected_revision'])
+                elif path == ['repair-marks']:
+                    result = repair_plan.marks(conn,data['asset_id'],data['intervals'],data['expected_revision'])
+                elif path == ['repair-plans']:
+                    result = repair_plan.create(conn,data['project_id'])
+                elif len(path)==3 and path[0]=='repair-plans' and path[2] in ('render','audition'):
+                    result = repair_render.render(conn,int(path[1]),data['destination'],data.get('at_sample',0),data.get('samples'),data.get('block_frames',4096))
                 elif path == ['resample-plans']:
                     result = resample_plan.create(conn, data['project_id'], data.get('rate',44100))
                 elif len(path)==3 and path[0]=='resample-plans' and path[2] in ('render','audition'):

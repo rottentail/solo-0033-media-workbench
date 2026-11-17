@@ -103,3 +103,13 @@ anti-alias reconstruction, shared channel timing, exact sample excerpts and
 block-independent output are part of this workflow. It uses bounded buffers and
 native-rate disk spools, preserving identity/relink and publication guarantees.
 See README for the supported rates, clock rounding and resource envelope.
+
+### Explicit impulse damage repair
+
+Source-native 48kHz damage intervals are revisioned independently of editing.
+Repair plans freeze those intervals and the timeline. Predictive stereo gap
+reconstruction precedes occurrence cropping, preserving intact samples and the
+original channel relationship. Partial-gap auditions and repeated source uses
+share the same reconstructed source waveform before gain. The supported short
+gaps, required intact context, finite-memory execution and publication contract
+are documented in README; ordinary spectral denoise remains a separate workflow.

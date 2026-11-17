@@ -303,6 +303,21 @@
       "id": "resample_render",
       "path": "mediaworkbench/resample_render.py",
       "responsibility": "原生采样解码、精确试听和受保护发布"
+    },
+    {
+      "id": "repair_plan",
+      "path": "mediaworkbench/repair_plan.py",
+      "responsibility": "原片缺损修订与逐次剪入冻结"
+    },
+    {
+      "id": "repair_signal",
+      "path": "mediaworkbench/repair_signal.py",
+      "responsibility": "可信边界下联合声道波形估计"
+    },
+    {
+      "id": "repair_render",
+      "path": "mediaworkbench/repair_render.py",
+      "responsibility": "原片修复先于裁切及精确试听发布"
     }
   ],
   "workflows": [

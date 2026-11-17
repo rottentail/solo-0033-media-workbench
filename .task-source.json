@@ -367,6 +367,15 @@
         "resample_render.render"
       ],
       "available": true
+    },
+    {
+      "family": "原片标记短缺损的双声道波形重建",
+      "occupied_by": [
+        "repair_plan.marks",
+        "repair_signal.restore",
+        "repair_render.render"
+      ],
+      "available": true
     }
   ],
   "extension_seams": [
@@ -495,6 +504,13 @@
       "entry": "POST /resample-plans",
       "distinct_outcome": "混合原生采样率在同一目标时钟带限交付，分数裁切和任意试听保持一致",
       "mechanism": "rational_clock_windowed_sinc_bounded_reconstruction"
+    },
+    {
+      "id": "impulse-repair",
+      "anchor": "repair_plan.create",
+      "entry": "POST /repair-plans",
+      "distinct_outcome": "原片短缺损按可信两侧上下文修复，任意跨缺损剪入保持波形与完整试听一致",
+      "mechanism": "joint_channel_bidirectional_autoregressive_constrained_interpolation"
     }
   ],
   "tension_points": [
