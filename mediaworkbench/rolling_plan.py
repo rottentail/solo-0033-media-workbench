@@ -22,7 +22,8 @@ def create(conn, asset_id, start_ms, duration_ms, horizontal_fov, zoom,
         if not isinstance(s, dict) or set(s) != {'at_ms', 'radians_per_second'}:
             raise ValueError('gyro sample needs time and body angular velocity')
         t, v = s['at_ms'], s['radians_per_second']
-        if type(t) not in (int, float) or not math.isfinite(t) or not previous < t <= 60000:
+        if (type(t) not in (int, float) or not math.isfinite(t)
+                or not 0 <= t <= 60000 or t <= previous):
             raise ValueError('gyro times must increase on original recording clock')
         if (not isinstance(v, list) or len(v) != 3
                 or any(type(a) not in (int, float) or not math.isfinite(a) for a in v)
