@@ -318,6 +318,26 @@
       "id": "repair_render",
       "path": "mediaworkbench/repair_render.py",
       "responsibility": "原片修复先于裁切及精确试听发布"
+    },
+    {
+      "id": "stitch_geometry",
+      "path": "mediaworkbench/stitch_geometry.py",
+      "responsibility": "原生像素透视标定、异常点共识与逆映射"
+    },
+    {
+      "id": "stitch_signal",
+      "path": "mediaworkbench/stitch_signal.py",
+      "responsibility": "线性光双线性采样与边缘羽化"
+    },
+    {
+      "id": "stitch_plan",
+      "path": "mediaworkbench/stitch_plan.py",
+      "responsibility": "冻结双机位素材、标定、入点和画布"
+    },
+    {
+      "id": "stitch_render",
+      "path": "mediaworkbench/stitch_render.py",
+      "responsibility": "有界临时解码与逐帧无损交付"
     }
   ],
   "workflows": [

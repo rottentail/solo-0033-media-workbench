@@ -385,6 +385,15 @@
         "echo_render.render"
       ],
       "available": true
+    },
+    {
+      "family": "双镜头平面透视拼接",
+      "occupied_by": [
+        "stitch_geometry.calibrate",
+        "stitch_signal.compose",
+        "stitch_render.render"
+      ],
+      "available": true
     }
   ],
   "extension_seams": [
@@ -527,6 +536,13 @@
       "entry": "POST /echo-profiles",
       "distinct_outcome": "独立试播校准短声学路径，冻结后从现场录音中扣除有符号延迟参考而保留叠说",
       "mechanism": "reference_conditioned_causal_fir_subtraction"
+    },
+    {
+      "id": "planar-panorama",
+      "anchor": "stitch_plan.profile",
+      "entry": "POST /stitch-profiles",
+      "distinct_outcome": "含误标点的平面透视校准与线性光羽化全景交付",
+      "mechanism": "robust_normalized_projective_registration_inverse_linear_light_blending"
     }
   ],
   "tension_points": [

@@ -22,6 +22,7 @@ from . import stretch_plan, stretch_render
 from . import resample_plan, resample_render
 from . import repair_plan, repair_render
 from . import echo_plan, echo_render
+from . import stitch_plan, stitch_render
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -59,6 +60,10 @@ class Handler(BaseHTTPRequestHandler):
                     result = spatial_plan.get(conn, int(path[1]))
                 elif len(path) == 2 and path[0] == 'caption-plans':
                     result = caption_plan.get(conn, int(path[1]))
+                elif len(path) == 2 and path[0] == 'stitch-plans':
+                    result = stitch_plan.get(conn, int(path[1]))
+                elif len(path) == 2 and path[0] == 'stitch-profiles':
+                    result = stitch_plan.load(conn, 'stitch_profiles', int(path[1]))
                 elif len(path) == 2 and path[0] == 'echo-plans':
                     result = echo_plan.get(conn, int(path[1]))
                 elif len(path) == 2 and path[0] == 'echo-profiles':
@@ -101,6 +106,12 @@ class Handler(BaseHTTPRequestHandler):
                     result = assets.register(conn, data['path'])
                 elif len(path)==3 and path[0]=='projects' and path[2]=='music':
                     result = music_plan.catalogue(conn,int(path[1]),data['sections'],data['joins'],data['expected_revision'])
+                elif path == ['stitch-profiles']:
+                    result = stitch_plan.profile(conn,data['left_asset_id'],data['right_asset_id'],data['matches'],data.get('threshold_px',1.0))
+                elif path == ['stitch-plans']:
+                    result = stitch_plan.create(conn,data['profile_id'],data['left_start_ms'],data['right_start_ms'],data['duration_ms'],data['canvas'])
+                elif len(path)==3 and path[0]=='stitch-plans' and path[2] in ('render','preview'):
+                    result = stitch_render.render(conn,int(path[1]),data['destination'],data.get('at_frame',0),data.get('frame_count'))
                 elif path == ['echo-profiles']:
                     result = echo_plan.profile(conn,data['microphone_id'],data['reference_id'],data['start_ms'],data['end_ms'],data.get('offset_samples',0))
                 elif path == ['echo-plans']:

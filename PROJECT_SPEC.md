@@ -113,3 +113,7 @@ original channel relationship. Partial-gap auditions and repeated source uses
 share the same reconstructed source waveform before gain. The supported short
 gaps, required intact context, finite-memory execution and publication contract
 are documented in README; ordinary spectral denoise remains a separate workflow.
+
+## 双镜头平面拼接
+
+固定同步双机位拍摄同一平面；6–12对原生像素中心标记，经双向像素容限确定至少6个且过半数可靠对应。保存透视校准与逐路入点、节目时长和左图坐标画布，拒绝退化、传感器跨地平线及无覆盖画布。逆映射、双线性采样和边缘距离羽化在线性光下完成，再编码sRGB。输出25fps静音无损FFV1；任意帧区间预览等于全片切片。长30秒640×360配对和画布可在192 MiB运行；每路只顺序解码一次到私有临时磁盘。新校准不改变旧方案；原片身份回连、变化拒绝、禁止覆盖及失败清理复用现有契约。

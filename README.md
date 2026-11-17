@@ -648,3 +648,19 @@ POST `/echo-plans/{id}/render|audition` 接收新 `destination`，可选
 只解码一次，临时磁盘承载展开音频；不把完整PCM常驻内存。支持验证后的原片
 回连，源变化拒绝、目标含悬空链接保护和失败清理保持有效。该功能不自动
 检测叠说区间，不跟踪移动话筒、长混响或不同步时钟，也不改变普通降噪/混音。
+
+## 双镜头平面拼接
+
+两个固定、已同步的相机拍摄同一个平面，交付静音 sRGB 无损 FFV1 MKV；不做视差补偿、自动找点或声音混合。
+原片视频原生尺寸相同，32×32 至 640×360，按 25 fps 取样。
+
+- `POST /stitch-profiles`：`left_asset_id`、`right_asset_id`、`matches`、可选 `threshold_px`（默认1，范围0.01–3）。
+  6–12 对 `[right_x,right_y,left_x,left_y]` 为原生像素中心坐标。标定支持少量误标，必须有至少6个且过半数的可靠点，双向像素误差均在容限内；空间退化、无法达成共识、传感器内跨地平线均拒绝，不保存半份标定。
+- `POST /stitch-plans`：`profile_id`、`left_start_ms`、`right_start_ms`、`duration_ms`、`canvas`。
+  两路独立入点均为40ms整数倍，节目最长30秒。canvas为左相机像素坐标中的 `{x,y,width,height}`，输出像素中心从 `(x,y)` 开始，最大960×540；不能有两路都未覆盖的像素。
+- `GET /stitch-profiles/{id}`、`GET /stitch-plans/{id}` 可重开冻结版本。
+- `POST /stitch-plans/{id}/render|preview`：新 `destination`、可选 `at_frame`、`frame_count`。
+  右图按平面透视关系映射到左图坐标；双线性采样、按各自有效图边距离羽化均在线性光中进行，再编码sRGB。
+  单路覆盖区保留该路内容；预览逐帧等于完整交付同位置，不能重新定标或把预览开头当原片起点。
+  两份原片各顺序解码一次到临时磁盘，内存不随片长增长；30秒640×360配对、640×360画布在192 MiB容器运行。
+  后续新标定不改变旧方案，回连按原素材身份解析，源变化拒绝，目标禁止覆盖，失败清除私有临时文件。
