@@ -3,6 +3,8 @@ import sqlite3
 from contextlib import contextmanager
 
 SCHEMA = '''
+CREATE TABLE IF NOT EXISTS music_catalogues (project_id INTEGER PRIMARY KEY REFERENCES projects(id), revision INTEGER NOT NULL, payload TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS music_plans (id INTEGER PRIMARY KEY, payload TEXT NOT NULL, payload_sha256 TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS room_plans (id INTEGER PRIMARY KEY, payload TEXT NOT NULL, payload_sha256 TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS noise_profiles (id INTEGER PRIMARY KEY, payload TEXT NOT NULL, payload_sha256 TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS denoise_plans (id INTEGER PRIMARY KEY, payload TEXT NOT NULL, payload_sha256 TEXT NOT NULL);

@@ -473,3 +473,34 @@ bounded by the measured responses rather than programme length; partial
 auditions include prior excitation, and the final decay is fully flushed.
 Original reconnection, source validation, destination protection and private
 file cleanup remain active. No GPU or third-party Python packages are required.
+
+
+## Target-duration music assembly
+
+`POST /projects/{id}/music` replaces a revisioned phrase catalogue with
+`sections`, `joins` and `expected_revision` (zero initially). Each phrase has
+unique `name`, `asset_id`, `start_ms`, `end_ms`, optional `gain` (0–2), integer
+`score` (−10000–10000), and `max_uses` (1–3). Eight phrases and one-minute
+source recordings are supported. Directed joins have `from`, `to`, `cost`;
+a missing join is forbidden. Source times belong to the recording, not the
+assembled programme. Section order resolves equal-quality ties.
+
+`POST /music-plans` accepts `project_id`, exact `target_ms` (up to 30000),
+`overlap_ms` (0–2000), and allowed `starts` and `ends` names. The uniform
+overlap must not exceed half any phrase. A complete route of at most twelve
+uses maximizes summed phrase scores minus join costs, respecting all use
+limits and openings/closings. Equal scores prefer fewer uses, then the
+lexicographically earliest catalogue-index sequence. No stretching, trimming,
+silent padding or partial plans are allowed; infeasible requests fail before
+persistence. Both the catalogue and chosen schedule are frozen in the plan.
+
+`GET /music-plans/{id}` inspects the result. `/render` and `/audition` accept
+`destination`, optional `at_sample`, `samples`, `block_frames` (1–16384) and
+write float stereo 48 kHz WAV. Each interior join uses cosine outgoing and
+sine incoming equal-power weights over the exact overlap, preserving each
+phrase's source cut, channels and gain without normalization or limiting.
+Auditions are exact slices of the full output even inside joins. Each distinct
+selected source decodes once to disk; repeated uses seek within that spool.
+Memory stays bounded by the output block, source relocation remains supported,
+changed originals are refused, existing destinations are protected, and private
+spools disappear on failure. Catalogue or timeline edits do not change saved plans.

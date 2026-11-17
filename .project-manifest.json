@@ -228,6 +228,21 @@
       "id": "room_render",
       "path": "mediaworkbench/room_render.py",
       "responsibility": "有界单次解码和精确含尾音试听交付"
+    },
+    {
+      "id": "music_select",
+      "path": "mediaworkbench/music_select.py",
+      "responsibility": "时长精确且段落使用有界的全局音乐路径"
+    },
+    {
+      "id": "music_plan",
+      "path": "mediaworkbench/music_plan.py",
+      "responsibility": "源位置段落校对、修订与冻结编配"
+    },
+    {
+      "id": "music_render",
+      "path": "mediaworkbench/music_render.py",
+      "responsibility": "单次原片解码与逐采样等功率段落衔接"
     }
   ],
   "workflows": [
@@ -459,6 +474,25 @@
         "caption_layout",
         "caption_plan",
         "timeline",
+        "db",
+        "server"
+      ]
+    },
+    {
+      "id": "music-conform",
+      "name": "定长音乐编配交付",
+      "entry": "POST /music-plans",
+      "steps": [
+        "修订原片音乐段落及有向衔接",
+        "按精确时长与使用次数求整段最优路径",
+        "冻结并以单次解码交付或试听"
+      ],
+      "success": "整段最佳合法编配及同版逐采样试听",
+      "failure": "无完整路径不落盘，源变化和目标冲突拒绝",
+      "module_ids": [
+        "music_plan",
+        "music_select",
+        "music_render",
         "db",
         "server"
       ]
