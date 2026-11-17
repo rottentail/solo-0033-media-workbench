@@ -394,6 +394,16 @@
         "stitch_render.render"
       ],
       "available": true
+    },
+    {
+      "family": "全景视频的球面视角轨迹与普通画面交付",
+      "occupied_by": [
+        "sphere_geometry.orientation",
+        "sphere_geometry.coordinates",
+        "sphere_signal.sample",
+        "sphere_render.render"
+      ],
+      "available": true
     }
   ],
   "extension_seams": [
@@ -543,6 +553,13 @@
       "entry": "POST /stitch-profiles",
       "distinct_outcome": "含误标点的平面透视校准与线性光羽化全景交付",
       "mechanism": "robust_normalized_projective_registration_inverse_linear_light_blending"
+    },
+    {
+      "id": "spherical-view",
+      "anchor": "sphere_plan.create",
+      "entry": "POST /sphere-plans",
+      "distinct_outcome": "等距柱状全景按冻结视角轨迹球面取景，跨经线和极点正确且预览等于整片切片",
+      "mechanism": "quaternion_geodesic_rectilinear_inverse_projection_spherical_topology"
     }
   ],
   "tension_points": [

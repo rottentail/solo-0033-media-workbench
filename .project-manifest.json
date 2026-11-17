@@ -338,6 +338,26 @@
       "id": "stitch_render",
       "path": "mediaworkbench/stitch_render.py",
       "responsibility": "有界临时解码与逐帧无损交付"
+    },
+    {
+      "id": "sphere_geometry",
+      "path": "mediaworkbench/sphere_geometry.py",
+      "responsibility": "球面朝向插值与普通相机射线逆投影"
+    },
+    {
+      "id": "sphere_signal",
+      "path": "mediaworkbench/sphere_signal.py",
+      "responsibility": "跨经线与极点的线性光球面采样"
+    },
+    {
+      "id": "sphere_plan",
+      "path": "mediaworkbench/sphere_plan.py",
+      "responsibility": "冻结全景原片剪入和视角轨迹"
+    },
+    {
+      "id": "sphere_render",
+      "path": "mediaworkbench/sphere_render.py",
+      "responsibility": "原片单次解码及有界逐帧视角交付"
     }
   ],
   "workflows": [

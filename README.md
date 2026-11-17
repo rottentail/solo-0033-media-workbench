@@ -664,3 +664,34 @@ POST `/echo-plans/{id}/render|audition` 接收新 `destination`，可选
   单路覆盖区保留该路内容；预览逐帧等于完整交付同位置，不能重新定标或把预览开头当原片起点。
   两份原片各顺序解码一次到临时磁盘，内存不随片长增长；30秒640×360配对、640×360画布在192 MiB容器运行。
   后续新标定不改变旧方案，回连按原素材身份解析，源变化拒绝，目标禁止覆盖，失败清除私有临时文件。
+
+
+## Full-sphere rectilinear view delivery
+
+`POST /sphere-plans` freezes a full 2:1 equirectangular video asset, a
+`start_ms` and `duration_ms` cut on 40 ms boundaries, even output `width` and
+`height` (32–640 by 32–360), `horizontal_fov` (20–140 degrees), and two to
+64 `keys`. A key is `{at_ms, quaternion:[x,y,z,w]}` relative to the cut,
+including both endpoints. Nonzero finite quaternions are normalized. World
+axes are right/up/forward; the quaternion actively maps a camera ray into
+world space. Source longitude zero is forward at the horizontal centre;
+positive longitude goes right, latitude increases upward. Source dimensions
+are 2:1, up to 640×320. These are full-sphere images, not planar stitch inputs.
+
+Adjacent orientations follow the shortest constant-angular-speed spherical
+rotation; opposite quaternion signs describe identical orientations. An exact
+180-degree turn needs an intermediate operator key to resolve its ambiguity.
+At each 25 fps frame midpoint the camera emits a pixel-centred rectilinear
+view; horizontal FOV and output aspect determine vertical coverage. Source
+pixels are samples at cell centres. Longitude wraps, and interpolation across
+a pole continues on the opposite meridian. Bilinear sampling operates on
+linear sRGB light, then returns 8-bit sRGB. There is no exposure adjustment.
+
+`GET /sphere-plans/{id}` reopens the immutable version. POST its `/render` or
+`/preview` route with a new `destination` and optional `at_frame,frame_count`
+to deliver silent lossless FFV1/MKV. A preview uses the same cut-relative
+camera clock and source frame as that slice of the complete delivery. Plans
+last at most 30 seconds. Originals are decoded once to a private disk spool;
+only bounded frame arrays stay in memory. Verified original relinking, source
+change rejection, occupied destination protection and failure cleanup apply.
+Existing video and sound workflows remain independent.
