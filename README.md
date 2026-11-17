@@ -504,3 +504,37 @@ selected source decodes once to disk; repeated uses seek within that spool.
 Memory stays bounded by the output block, source relocation remains supported,
 changed originals are refused, existing destinations are protected, and private
 spools disappear on failure. Catalogue or timeline edits do not change saved plans.
+
+## Broadcast programme mastering
+
+Install the Python package with `python3 -m pip install -e .` (NumPy and SciPy),
+plus FFmpeg/FFprobe. `POST /master-plans` freezes a previously saved `mix_id`,
+`target_lufs` (default -23, range -30 to -10) and `ceiling_db` (default -1,
+range -6 to -0.5). It supports stereo 48 kHz programmes from 400 ms to 30 s.
+The embedded mix, occurrence trims, gains, ducking trajectory and editorial
+revision remain immutable; later changes to the original mix do not participate.
+`GET /master-plans/{id}` inspects that version. `/render` and `/audition`
+accept `destination`, `at_sample`, `samples` and `block_frames` (1–16384).
+Audition indices are exact 48 kHz programme samples. They crop the completed
+master, including gain recovery that started before the excerpt.
+
+The loudness meter implements two-stage 48 kHz K weighting, 400 ms stereo
+energy windows on a 100 ms hop, a -70 LUFS absolute gate and a relative gate
+10 LU below the admitted mean. This differs from the ordinary mix workflow's
+sample-peak compensation. True peaks are evaluated after 4x, 64-tap FFmpeg
+resampling, including both channels. A shared stereo gain trajectory guards
+neighbouring 10 ms cells and limits gain changes to 0.25 dB per cell; global
+input gain is calibrated against the measured, limited complete programme.
+A 0.15 LU delivery tolerance and final reconstructed-peak check are mandatory.
+A silent or infeasible programme fails before publishing. The delivered WAV is
+stereo 48 kHz float PCM; metrics describe the complete master even for excerpts.
+This is a bounded programme mastering processor, not a promise of a specific
+commercial limiter's envelope or an unrestricted realtime streaming processor.
+
+Each original occurrence is decoded once into private temporary storage. Source
+PCM, weighted PCM and candidate masters live on disk; only bounded processing
+blocks and scalar analysis cells live in memory. Block size does not reset filter,
+gain or programme time. Source identities are rechecked after processing and
+current original locations are resolved through the existing relink mechanism.
+Publication refuses existing targets, and failed work releases private files.
+Ordinary mix, room, denoise and music deliveries retain their own processing.

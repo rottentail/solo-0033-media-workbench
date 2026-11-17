@@ -330,6 +330,15 @@
         "room_render.render"
       ],
       "available": true
+    },
+    {
+      "family": "广播响度母带与真实峰值交付",
+      "occupied_by": [
+        "master_plan.create",
+        "master_signal.master",
+        "master_render.render"
+      ],
+      "available": true
     }
   ],
   "extension_seams": [

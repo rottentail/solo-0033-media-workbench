@@ -243,6 +243,21 @@
       "id": "music_render",
       "path": "mediaworkbench/music_render.py",
       "responsibility": "单次原片解码与逐采样等功率段落衔接"
+    },
+    {
+      "id": "master_plan",
+      "path": "mediaworkbench/master_plan.py",
+      "responsibility": "冻结整段混音和广播响度交付约定"
+    },
+    {
+      "id": "master_signal",
+      "path": "mediaworkbench/master_signal.py",
+      "responsibility": "门控广播响度测量与联动真实峰值增益轨迹"
+    },
+    {
+      "id": "master_render",
+      "path": "mediaworkbench/master_render.py",
+      "responsibility": "单次原片解码、整段校准及逐采样母带试听"
     }
   ],
   "workflows": [
@@ -495,6 +510,24 @@
         "music_render",
         "db",
         "server"
+      ]
+    },
+    {
+      "id": "broadcast-master",
+      "name": "广播响度母带交付",
+      "entry": "POST /master-plans",
+      "steps": [
+        "冻结混音",
+        "测量门控整段响度",
+        "校准真实峰值联动轨迹",
+        "整段或精确中段交付"
+      ],
+      "success": "整段响度和重建峰值合格且试听一致",
+      "failure": "不可达响度和源变化拒绝；失败不发布",
+      "module_ids": [
+        "master_plan",
+        "master_signal",
+        "master_render"
       ]
     }
   ],
