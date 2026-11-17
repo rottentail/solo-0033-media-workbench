@@ -273,6 +273,21 @@
       "id": "color_render",
       "path": "mediaworkbench/color_render.py",
       "responsibility": "单次解码和同版中段无损颜色交付"
+    },
+    {
+      "id": "stretch_plan",
+      "path": "mediaworkbench/stretch_plan.py",
+      "responsibility": "冻结逐次对白源与画面对齐关系"
+    },
+    {
+      "id": "stretch_signal",
+      "path": "mediaworkbench/stretch_signal.py",
+      "responsibility": "双声道联合波形对齐、瞬态保护和有界保音高伸缩"
+    },
+    {
+      "id": "stretch_render",
+      "path": "mediaworkbench/stretch_render.py",
+      "responsibility": "单次原片解码、完整历史试听与受保护交付"
     }
   ],
   "workflows": [

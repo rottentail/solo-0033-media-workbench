@@ -545,3 +545,32 @@ Ordinary mix, room, denoise and music deliveries retain their own processing.
 `POST /color-plans` 接收 project_id、每次剪入的 encodings（pq2020、linear2020、srgb709）及 white_nits（80–300）。当前颜色交付为160×90、25fps无声无损FFV1/MKV审片文件，入出点须在40ms帧网格上，与普通剪辑成片相互独立。`GET /color-plans/{id}` 重开冻结方案，`POST /color-plans/{id}/render|preview` 接收 destination、可选 at_frame/frame_count。最长30秒，每个剪入的全镜头统计只决定该实例曝光；中段预览不会重新分析局部曝光。PQ按绝对亮度解码并由BT.2020变换到BT.709线性光，保留中间调、连续高光肩部和亮度/色相一致的色域压缩，最后用sRGB显示编码。中间调以去除两端各5%的对数亮度统计定位18%显示白，小面积极亮物不应支配主体。高精度中间数据存临时磁盘，每次剪入原片只解码一次，逐帧分析和输出不保存整片画面；失败释放临时目录，源变化拒绝交付，目标禁止覆盖，支持原片回连。
 
 颜色审片支持最高1280×720输入，linear2020代码值1.0表示1000 nits，srgb709代码值1.0表示100 nits，pq2020采用ST 2084绝对亮度。RGB输入及带矩阵/范围标记的YUV输入均转换成原基色高精度RGB后处理；16位FFV1输入已验证。输出为8位审片，量化不能保证任意相近的高光都有不同代码值。192 MiB是整个容器包括解码器的内存上限，验证以30秒1280×720 FFV1输入为资源边界，不宣称对任意编解码器及参考帧配置都有余量。
+
+## Pitch-preserving dialogue timing
+
+`POST /stretch-plans` accepts a `project_id` and one `maps` entry per timeline
+occurrence. A map contains two to sixteen `{source_ms, picture_ms}` points,
+relative to the trimmed source and the start of that occurrence's output.
+Both axes start at zero, and the last source point equals the trim duration.
+For example, a 500 ms take can use `[{"source_ms":0,"picture_ms":0},
+{"source_ms":200,"picture_ms":300},{"source_ms":500,"picture_ms":650}]`.
+Each span needs at least 80 ms on both axes and a speed between 0.5 and 2.
+One to eight occurrences and at most thirty output seconds are supported.
+
+`GET /stretch-plans/{id}` inspects the frozen timing. The `/render` and
+`/audition` POST routes accept a new `destination`, optional `at_sample` and
+`samples` on the 48 kHz output clock, and `block_frames` from 1 to 65536.
+They deliver stereo float WAV, preserving source trims, occurrence gain and
+joint-channel phase relationships. Timing maps do not change pitch: waveform
+alignment preserves voiced periodicity while protected attack neighbourhoods
+avoid duplicating short onsets. This is a bounded waveform overlap processor,
+not a speech model or a claim to transparent processing of arbitrary music.
+
+Synthesis follows the saved picture clock, retaining internal source/picture
+anchors. An audition is cropped from that complete synthesis history, so it
+matches complete delivery regardless of block size or later timeline edits.
+Decoded originals are materialized once per occurrence to temporary disk;
+only local analysis windows and output blocks remain in memory. Sources are
+checked before decoding and before publication. Relocated verified originals
+remain usable, occupied destinations remain protected and failures remove
+private temporary files. Ordinary retiming keeps its pitch-changing contract.

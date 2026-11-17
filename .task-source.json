@@ -349,6 +349,15 @@
         "color_render.render"
       ],
       "available": true
+    },
+    {
+      "family": "保音高对白画面对齐",
+      "occupied_by": [
+        "stretch_plan.create",
+        "stretch_signal.blocks",
+        "stretch_render.render"
+      ],
+      "available": true
     }
   ],
   "extension_seams": [
@@ -463,6 +472,13 @@
       "entry": "POST /color-plans",
       "distinct_outcome": "逐次完整镜头曝光和保亮度色相的SDR审片，同版中段预览",
       "mechanism": "absolute_light_scene_exposure_hue_ray_gamut_mapping"
+    },
+    {
+      "id": "dialogue-timing",
+      "anchor": "stretch_plan.create",
+      "entry": "POST /stretch-plans",
+      "distinct_outcome": "逐次对白在原片与画面标记间保音高适配，保留联合声像、瞬态与精确试听",
+      "mechanism": "anchor_constrained_stereo_waveform_overlap_transient_protection"
     }
   ],
   "tension_points": [
