@@ -538,3 +538,8 @@ gain or programme time. Source identities are rechecked after processing and
 current original locations are resolved through the existing relink mechanism.
 Publication refuses existing targets, and failed work releases private files.
 Ordinary mix, room, denoise and music deliveries retain their own processing.
+
+
+## HDR 素材的 SDR 颜色交付
+
+`POST /color-plans` 接收 project_id、每次剪入的 encodings（pq2020、linear2020、srgb709）及 white_nits（80–300）。当前颜色交付为160×90、25fps无声无损FFV1/MKV审片文件，与普通剪辑成片相互独立。`GET /color-plans/{id}` 重开冻结方案，`POST /color-plans/{id}/render|preview` 接收 destination、可选 at_frame/frame_count。最长30秒，每个剪入的全镜头统计只决定该实例曝光；中段预览不会重新分析局部曝光。PQ按绝对亮度解码并由BT.2020变换到BT.709线性光，保留中间调、连续高光肩部和亮度/色相一致的色域压缩，最后用sRGB显示编码。中间调以去除两端各5%的对数亮度统计定位18%显示白，小面积极亮物不应支配主体。高精度中间数据存临时磁盘，每次剪入原片只解码一次，逐帧分析和输出不保存整片画面；失败释放临时目录，源变化拒绝交付，目标禁止覆盖，支持原片回连。

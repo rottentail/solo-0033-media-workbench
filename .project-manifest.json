@@ -258,6 +258,21 @@
       "id": "master_render",
       "path": "mediaworkbench/master_render.py",
       "responsibility": "单次原片解码、整段校准及逐采样母带试听"
+    },
+    {
+      "id": "color_plan",
+      "path": "mediaworkbench/color_plan.py",
+      "responsibility": "冻结逐次剪入颜色解释和显示条件"
+    },
+    {
+      "id": "color_signal",
+      "path": "mediaworkbench/color_signal.py",
+      "responsibility": "绝对亮度转换、镜头曝光和保色相色域压缩"
+    },
+    {
+      "id": "color_render",
+      "path": "mediaworkbench/color_render.py",
+      "responsibility": "单次解码和同版中段无损颜色交付"
     }
   ],
   "workflows": [
@@ -528,6 +543,26 @@
         "master_plan",
         "master_signal",
         "master_render"
+      ]
+    },
+    {
+      "id": "hdr-sdr-color",
+      "name": "宽色域HDR到SDR颜色交付",
+      "entry": "POST /color-plans",
+      "steps": [
+        "冻结每次剪入及原片颜色解释",
+        "全镜头对数亮度统计",
+        "亮度映射和保色相色域压缩",
+        "单次解码逐帧交付"
+      ],
+      "success": "高光有层次、主体曝光稳定、同版预览一致",
+      "failure": "源变化和目标冲突拒绝",
+      "verification": "独立绝对光、颜色、真实帧和内存探针",
+      "module_ids": [
+        "color_plan",
+        "color_signal",
+        "color_render",
+        "media_sources"
       ]
     }
   ],

@@ -17,6 +17,7 @@ from . import denoise_plan, denoise_render
 from . import room_plan, room_render
 from . import music_plan, music_render
 from . import master_plan, master_render
+from . import color_plan, color_render
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -54,6 +55,8 @@ class Handler(BaseHTTPRequestHandler):
                     result = spatial_plan.get(conn, int(path[1]))
                 elif len(path) == 2 and path[0] == 'caption-plans':
                     result = caption_plan.get(conn, int(path[1]))
+                elif len(path) == 2 and path[0] == 'color-plans':
+                    result = color_plan.get(conn, int(path[1]))
                 elif len(path) == 2 and path[0] == 'master-plans':
                     result = master_plan.get(conn, int(path[1]))
                 elif len(path) == 2 and path[0] == 'music-plans':
@@ -84,6 +87,10 @@ class Handler(BaseHTTPRequestHandler):
                     result = assets.register(conn, data['path'])
                 elif len(path)==3 and path[0]=='projects' and path[2]=='music':
                     result = music_plan.catalogue(conn,int(path[1]),data['sections'],data['joins'],data['expected_revision'])
+                elif path == ['color-plans']:
+                    result = color_plan.create(conn,data['project_id'],data['encodings'],data.get('white_nits',100))
+                elif len(path)==3 and path[0]=='color-plans' and path[2] in ('render','preview'):
+                    result = color_render.render(conn,int(path[1]),data['destination'],data.get('at_frame',0),data.get('frame_count'))
                 elif path == ['master-plans']:
                     result = master_plan.create(conn, data['mix_id'], data.get('target_lufs',-23), data.get('ceiling_db',-1))
                 elif len(path)==3 and path[0]=='master-plans' and path[2] in ('render','audition'):

@@ -339,6 +339,16 @@
         "master_render.render"
       ],
       "available": true
+    },
+    {
+      "family": "宽色域HDR颜色与SDR审片交付",
+      "occupied_by": [
+        "color_plan.create",
+        "color_signal.decode",
+        "color_signal.map_frame",
+        "color_render.render"
+      ],
+      "available": true
     }
   ],
   "extension_seams": [
@@ -446,6 +456,13 @@
       "entry": "POST /room-plans",
       "distinct_outcome": "有符号立体声传递矩阵、输入时刻空间过渡、完整反射尾音和精确切片",
       "mechanism": "partitioned_time_varying_matrix_convolution"
+    },
+    {
+      "id": "hdr-sdr-color",
+      "anchor": "color_plan.create",
+      "entry": "POST /color-plans",
+      "distinct_outcome": "逐次完整镜头曝光和保亮度色相的SDR审片，同版中段预览",
+      "mechanism": "absolute_light_scene_exposure_hue_ray_gamut_mapping"
     }
   ],
   "tension_points": [
