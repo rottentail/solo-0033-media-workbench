@@ -10,10 +10,11 @@ from .tools import run
 
 def materialize(clip, root, index, width, height):
     path = root / f'source-{index}.rgb48'
+    matrix = 'bt709' if clip['encoding'] == 'srgb709' else 'bt2020'
     run('ffmpeg', ['-v', 'error', '-y', '-threads', '1', '-filter_threads', '1',
         '-ss', str(clip['start_ms'] / 1000), '-i', clip['path'],
         '-t', str((clip['end_ms'] - clip['start_ms']) / 1000), '-an',
-        '-vf', f'scale={width}:{height},fps=25', '-frames:v', str(clip['frames']),
+        '-vf', f'scale={width}:{height}:in_color_matrix={matrix}:out_range=full,fps=25', '-frames:v', str(clip['frames']),
         '-pix_fmt', 'rgb48le', '-f', 'rawvideo', str(path)])
     if path.stat().st_size != width * height * 6 * clip['frames']:
         raise ValueError('colour source did not provide every planned picture')

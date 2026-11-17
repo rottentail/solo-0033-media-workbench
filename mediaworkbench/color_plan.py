@@ -19,6 +19,10 @@ def create(conn, project_id, encodings, white_nits=100):
         raise ValueError('colour programme must be between 40 ms and 30 seconds')
     if any(c['start_ms'] % 40 or c['end_ms'] % 40 for c in frozen['clips']):
         raise ValueError('colour review cuts must align to the 25 fps picture grid')
+    for clip in frozen['clips']:
+        video = next(stream for stream in json.loads(clip['metadata'])['streams'] if stream.get('codec_type') == 'video')
+        if not 1 <= video['width'] <= 1280 or not 1 <= video['height'] <= 720:
+            raise ValueError('colour review supports sources up to 1280 by 720')
     for clip, encoding in zip(frozen['clips'], encodings):
         clip['encoding'] = encoding
         clip['frames'] = max(1, round((clip['end_ms'] - clip['start_ms']) / 40))
