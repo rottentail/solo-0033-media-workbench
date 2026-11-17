@@ -574,3 +574,25 @@ only local analysis windows and output blocks remain in memory. Sources are
 checked before decoding and before publication. Relocated verified originals
 remain usable, occupied destinations remain protected and failures remove
 private temporary files. Ordinary retiming keeps its pitch-changing contract.
+
+## 多采样率声音交付
+
+`POST /resample-plans` 接收 `{project_id,rate}`，目标 rate 为44100、48000或96000；
+`GET /resample-plans/{id}` 重开冻结版本。原片第一条音轨可为单声道或立体声，
+8–192 kHz、最长60秒；单声道同幅复制至左右。时间线支持最多8次剪入、总长30秒。
+这条流程保持节目时长和原有音调，不执行普通变速、对白拉伸、响度母带或降噪。
+
+时间线毫秒边界在一条目标采样时钟上四舍五入（半值向后），不逐段累计舍入误差。
+每个输出采样按它在该次剪入中的真实时间取原片；原片裁切位置即使落在两个原生
+采样之间，也不先挤到原生采样网格。重建只使用裁切范围内的原生采样点，范围外
+视为零，保留各次剪入音量、双声道相位及相对强弱，不做独立归一化或削波。
+转换保留低于两端较低奈奎斯特频率90%的可听带宽，抑制降采样折叠，支持
+非整数比例并补偿滤波时延。裁切边缘允许有限长带限重建的自然振铃。
+
+`POST /resample-plans/{id}/render|audition` 接收 `destination`、可选 `at_sample`、
+`samples`、`block_frames`（1–65536），以目标时钟计数，输出目标采样率的双声道
+float WAV。任意中段试听与整段文件同位置逐采样一致，处理块大小只影响I/O。
+每次请求中每次剪入原片只顺序解码一次至临时磁盘，按原生采样率重建，不经过
+固定48kHz中间转换。192 MiB交付机可处理30秒、8次剪入、最高192kHz原片，
+内存不保留整段PCM。保存方案后编辑时间线不改变旧版，支持验证后的原片回连；
+源变化拒绝、目标（含悬空链接）保护和失败时私有文件清理仍有效。

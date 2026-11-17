@@ -358,6 +358,15 @@
         "stretch_render.render"
       ],
       "available": true
+    },
+    {
+      "family": "原生采样时钟与带限声音交付",
+      "occupied_by": [
+        "resample_plan.create",
+        "resample_signal.reconstruct",
+        "resample_render.render"
+      ],
+      "available": true
     }
   ],
   "extension_seams": [
@@ -479,6 +488,13 @@
       "entry": "POST /stretch-plans",
       "distinct_outcome": "逐次对白在原片与画面标记间保音高适配，保留联合声像、瞬态与精确试听",
       "mechanism": "anchor_constrained_stereo_waveform_overlap_transient_protection"
+    },
+    {
+      "id": "native-rate-delivery",
+      "anchor": "resample_plan.create",
+      "entry": "POST /resample-plans",
+      "distinct_outcome": "混合原生采样率在同一目标时钟带限交付，分数裁切和任意试听保持一致",
+      "mechanism": "rational_clock_windowed_sinc_bounded_reconstruction"
     }
   ],
   "tension_points": [

@@ -288,6 +288,21 @@
       "id": "stretch_render",
       "path": "mediaworkbench/stretch_render.py",
       "responsibility": "单次原片解码、完整历史试听与受保护交付"
+    },
+    {
+      "id": "resample_plan",
+      "path": "mediaworkbench/resample_plan.py",
+      "responsibility": "目标采样率方案与全局边界冻结"
+    },
+    {
+      "id": "resample_signal",
+      "path": "mediaworkbench/resample_signal.py",
+      "responsibility": "有理时钟带限重建与有限内存"
+    },
+    {
+      "id": "resample_render",
+      "path": "mediaworkbench/resample_render.py",
+      "responsibility": "原生采样解码、精确试听和受保护发布"
     }
   ],
   "workflows": [

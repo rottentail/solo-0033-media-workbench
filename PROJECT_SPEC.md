@@ -93,3 +93,13 @@ Retime curves also support one to three alternating forward/reverse passes of th
 `POST /color-plans` 接收 project_id、每次剪入的 encodings（pq2020、linear2020、srgb709）及 white_nits（80–300）。当前颜色交付为160×90、25fps无声无损FFV1/MKV审片文件，入出点须在40ms帧网格上，与普通剪辑成片相互独立。`GET /color-plans/{id}` 重开冻结方案，`POST /color-plans/{id}/render|preview` 接收 destination、可选 at_frame/frame_count。最长30秒，每个剪入的全镜头统计只决定该实例曝光；中段预览不会重新分析局部曝光。PQ按绝对亮度解码并由BT.2020变换到BT.709线性光，保留中间调、连续高光肩部和亮度/色相一致的色域压缩，最后用sRGB显示编码。中间调以去除两端各5%的对数亮度统计定位18%显示白，小面积极亮物不应支配主体。高精度中间数据存临时磁盘，每次剪入原片只解码一次，逐帧分析和输出不保存整片画面；失败释放临时目录，源变化拒绝交付，目标禁止覆盖，支持原片回连。
 
 颜色审片支持最高1280×720输入，linear2020代码值1.0表示1000 nits，srgb709代码值1.0表示100 nits，pq2020采用ST 2084绝对亮度。RGB输入及带矩阵/范围标记的YUV输入均转换成原基色高精度RGB后处理；16位FFV1输入已验证。输出为8位审片，量化不能保证任意相近的高光都有不同代码值。192 MiB是整个容器包括解码器的内存上限，验证以30秒1280×720 FFV1输入为资源边界，不宣称对任意编解码器及参考帧配置都有余量。
+
+### Native-rate sound delivery
+
+The rate-delivery workflow freezes the original-rate catalogue and cumulative
+programme clock. It converts mono/stereo native audio to 44.1/48/96 kHz stereo
+float WAV without changing duration or pitch. Fractional native trim positions,
+anti-alias reconstruction, shared channel timing, exact sample excerpts and
+block-independent output are part of this workflow. It uses bounded buffers and
+native-rate disk spools, preserving identity/relink and publication guarantees.
+See README for the supported rates, clock rounding and resource envelope.
