@@ -629,5 +629,13 @@
       "observable_failure": "弱音被吞、底噪颤动、声像游移、边界调制或试听无法代表成片"
     }
   ],
-  "prompt_anchors": []
+  "prompt_anchors": [],
+  "rolling_shutter_capability": {
+    "modules": [
+      "rolling_geometry",
+      "rolling_plan",
+      "rolling_render"
+    ],
+    "contract": "body-clock row exposure inverse projection; frozen linear-light delivery"
+  }
 }

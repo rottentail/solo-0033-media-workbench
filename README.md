@@ -695,3 +695,32 @@ last at most 30 seconds. Originals are decoded once to a private disk spool;
 only bounded frame arrays stay in memory. Verified original relinking, source
 change rejection, occupied destination protection and failure cleanup apply.
 Existing video and sound workflows remain independent.
+
+## 陀螺仪辅助卷帘快门校正
+
+`POST /rolling-plans` 接收 `asset_id,start_ms,duration_ms,horizontal_fov,zoom,
+readout_ms,direction,gyro`。原片为无畸变针孔相机的视频，原生偶数尺寸
+32×32 至640×360、宽高比1–2，按25fps取帧；只校正纯旋转的逐行曝光扭曲，
+不补偿平移视差、镜头畸变或运动模糊，也不平滑帧间真实转头。
+剪入及长度为40ms整倍数，最长30秒。水平视场40–100度，zoom为1–2的
+中心裁切放大，readout_ms为0–20ms整帧读出时间；direction为
+`top-to-bottom` 或 `bottom-to-top`。
+
+相机坐标为右、下、前。gyro有2–4096条严格递增的
+`{at_ms,radians_per_second:[x,y,z]}`，时间在原片0–60000ms时钟上，必须覆盖
+整个剪入。角速度是相机本体坐标中的弧度每秒，每条保持到下一条；向量长度
+至多2。首条姿态可任意置为单位，后续随本体旋转累积。每帧时刻为原片
+`start_ms+(frame+.5)*40`，交付重建这一时刻的全局快门视图。
+源像素中心所在行y的曝光时刻等于该帧时刻加
+`sign*((y+.5)/height-.5)*readout_ms`，反向读出sign为-1。
+输出像素中心经中心zoom裁切后代表同一针孔相机的光线，必须找到它在逐行
+曝光原片中的对应位置，行时刻属于最终命中的原片行；不能以输出行替代。
+
+校正后每个像素需有完整的原片支持，zoom不足或不能建立可信对应时明确拒绝，
+不复制边缘、不填黑也不偷偷加大裁切；保存前检查全片，不落半份方案。
+采样按线性sRGB双线性插值再编码，零读出、zoom=1应逐像素保留原片。
+`GET /rolling-plans/{id}` 重开冻结版本；`POST /rolling-plans/{id}/render|preview`
+接收新destination及可选at_frame、frame_count，输出静音无损FFV1/MKV。
+任意中段预览与完整交付同位置逐帧相同，后续新方案和普通编辑不改变旧版。
+每次请求原片顺序解码一次到私有磁盘，仅保存有界帧数组；最长节目在192MiB
+运行环境完成。原片回连和变化拒绝、目标含悬空链接保护、失败私有文件清理有效。

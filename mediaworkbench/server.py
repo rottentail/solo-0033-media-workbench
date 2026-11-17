@@ -24,6 +24,7 @@ from . import repair_plan, repair_render
 from . import echo_plan, echo_render
 from . import stitch_plan, stitch_render
 from . import sphere_plan, sphere_render
+from . import rolling_plan, rolling_render
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -61,6 +62,8 @@ class Handler(BaseHTTPRequestHandler):
                     result = spatial_plan.get(conn, int(path[1]))
                 elif len(path) == 2 and path[0] == 'caption-plans':
                     result = caption_plan.get(conn, int(path[1]))
+                elif len(path) == 2 and path[0] == 'rolling-plans':
+                    result = rolling_plan.get(conn, int(path[1]))
                 elif len(path) == 2 and path[0] == 'sphere-plans':
                     result = sphere_plan.get(conn, int(path[1]))
                 elif len(path) == 2 and path[0] == 'stitch-plans':
@@ -109,6 +112,11 @@ class Handler(BaseHTTPRequestHandler):
                     result = assets.register(conn, data['path'])
                 elif len(path)==3 and path[0]=='projects' and path[2]=='music':
                     result = music_plan.catalogue(conn,int(path[1]),data['sections'],data['joins'],data['expected_revision'])
+                elif path == ['rolling-plans']:
+                    result = rolling_plan.create(conn, data['asset_id'], data['start_ms'], data['duration_ms'],
+                        data['horizontal_fov'], data['zoom'], data['readout_ms'], data['direction'], data['gyro'])
+                elif len(path)==3 and path[0]=='rolling-plans' and path[2] in ('render','preview'):
+                    result = rolling_render.render(conn, int(path[1]), data['destination'], data.get('at_frame',0), data.get('frame_count'))
                 elif path == ['sphere-plans']:
                     result = sphere_plan.create(conn, data['asset_id'], data['start_ms'], data['duration_ms'],
                         data['width'], data['height'], data['horizontal_fov'], data['keys'])

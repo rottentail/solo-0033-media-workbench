@@ -358,6 +358,21 @@
       "id": "sphere_render",
       "path": "mediaworkbench/sphere_render.py",
       "responsibility": "原片单次解码及有界逐帧视角交付"
+    },
+    {
+      "id": "rolling_geometry",
+      "path": "mediaworkbench/rolling_geometry.py",
+      "responsibility": "本体角速度的SO(3)时序积分与原片行曝光隐式逆投影"
+    },
+    {
+      "id": "rolling_plan",
+      "path": "mediaworkbench/rolling_plan.py",
+      "responsibility": "全片覆盖预检与不可变卷帘校正版本"
+    },
+    {
+      "id": "rolling_render",
+      "path": "mediaworkbench/rolling_render.py",
+      "responsibility": "线性光校正采样与有界无损交付"
     }
   ],
   "workflows": [
