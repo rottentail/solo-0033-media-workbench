@@ -21,6 +21,7 @@ from . import color_plan, color_render
 from . import stretch_plan, stretch_render
 from . import resample_plan, resample_render
 from . import repair_plan, repair_render
+from . import echo_plan, echo_render
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -58,6 +59,10 @@ class Handler(BaseHTTPRequestHandler):
                     result = spatial_plan.get(conn, int(path[1]))
                 elif len(path) == 2 and path[0] == 'caption-plans':
                     result = caption_plan.get(conn, int(path[1]))
+                elif len(path) == 2 and path[0] == 'echo-plans':
+                    result = echo_plan.get(conn, int(path[1]))
+                elif len(path) == 2 and path[0] == 'echo-profiles':
+                    result = echo_plan.load(conn, 'echo_profiles', int(path[1]))
                 elif len(path) == 2 and path[0] == 'repair-plans':
                     result = repair_plan.get(conn, int(path[1]))
                 elif len(path) == 2 and path[0] == 'resample-plans':
@@ -96,6 +101,12 @@ class Handler(BaseHTTPRequestHandler):
                     result = assets.register(conn, data['path'])
                 elif len(path)==3 and path[0]=='projects' and path[2]=='music':
                     result = music_plan.catalogue(conn,int(path[1]),data['sections'],data['joins'],data['expected_revision'])
+                elif path == ['echo-profiles']:
+                    result = echo_plan.profile(conn,data['microphone_id'],data['reference_id'],data['start_ms'],data['end_ms'],data.get('offset_samples',0))
+                elif path == ['echo-plans']:
+                    result = echo_plan.create(conn,data['project_id'],data['profile_ids'])
+                elif len(path)==3 and path[0]=='echo-plans' and path[2] in ('render','audition'):
+                    result = echo_render.render(conn,int(path[1]),data['destination'],data.get('at_sample',0),data.get('samples'),data.get('block_frames',4096))
                 elif path == ['repair-marks']:
                     result = repair_plan.marks(conn,data['asset_id'],data['intervals'],data['expected_revision'])
                 elif path == ['repair-plans']:

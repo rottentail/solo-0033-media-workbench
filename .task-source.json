@@ -376,6 +376,15 @@
         "repair_render.render"
       ],
       "available": true
+    },
+    {
+      "family": "已知回放参考的现场串音消除",
+      "occupied_by": [
+        "echo_plan.profile",
+        "echo_signal.identify",
+        "echo_render.render"
+      ],
+      "available": true
     }
   ],
   "extension_seams": [
@@ -511,6 +520,13 @@
       "entry": "POST /repair-plans",
       "distinct_outcome": "原片短缺损按可信两侧上下文修复，任意跨缺损剪入保持波形与完整试听一致",
       "mechanism": "joint_channel_bidirectional_autoregressive_constrained_interpolation"
+    },
+    {
+      "id": "reference-echo",
+      "anchor": "echo_plan.profile",
+      "entry": "POST /echo-profiles",
+      "distinct_outcome": "独立试播校准短声学路径，冻结后从现场录音中扣除有符号延迟参考而保留叠说",
+      "mechanism": "reference_conditioned_causal_fir_subtraction"
     }
   ],
   "tension_points": [
