@@ -447,3 +447,29 @@ SQLite write transaction. Accepted original relinks work without changing the
 plan; missing or changed originals fail, and proxies cannot replace originals.
 A failed request removes temporary work, and delivery never replaces an existing
 file. Ordinary stereo mixing and its peak compensation remain separate.
+
+## Measured stereo room responses
+
+`POST /room-plans` freezes a timeline and one to three measured room stages.
+Each stage provides `asset_id`, `at_ms` and `fade_ms`; the first starts at zero
+without a fade and later fades must not overlap. The response is a four-channel
+48 kHz recording, up to one second, in output/input order LL, LR, RL, RR.
+Its signed amplitudes, interchannel calibration, delays and full decay are
+retained. Response bytes are frozen in the plan, so later relocation, removal
+or catalogue changes to the response never change a saved acoustic space.
+
+Room changes interpolate the excitation sent to each room, preserving earlier
+reflections already in flight. They do not fade away a previous room's tail.
+Per-occurrence gains precede the room; wet gain follows the full stereo matrix
+and dry gain is added without limiting or implicit normalization. The default
+is wet-only. Programmes support eight occurrences, up to thirty seconds.
+
+`GET /room-plans/{id}` inspects the saved plan. `POST /room-plans/{id}/render`
+and `/audition` write float stereo WAV to a new `destination`. Optional
+`at_sample` and `samples` select an exact slice of the full programme plus
+the longest response minus one sample. `block_frames` changes only output I/O.
+Each occurrence decodes once to disk. Partitioned convolution keeps memory
+bounded by the measured responses rather than programme length; partial
+auditions include prior excitation, and the final decay is fully flushed.
+Original reconnection, source validation, destination protection and private
+file cleanup remain active. No GPU or third-party Python packages are required.

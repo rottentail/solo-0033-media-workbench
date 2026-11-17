@@ -14,6 +14,7 @@ from . import spatial_plan, spatial_render
 from . import bundle_export
 from . import caption_words, caption_plan
 from . import denoise_plan, denoise_render
+from . import room_plan, room_render
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -51,6 +52,8 @@ class Handler(BaseHTTPRequestHandler):
                     result = spatial_plan.get(conn, int(path[1]))
                 elif len(path) == 2 and path[0] == 'caption-plans':
                     result = caption_plan.get(conn, int(path[1]))
+                elif len(path) == 2 and path[0] == 'room-plans':
+                    result = room_plan.get(conn, int(path[1]))
                 elif len(path) == 2 and path[0] == 'denoise-plans':
                     result = denoise_plan.get(conn, int(path[1]))
                 elif len(path) == 3 and path[0] == 'assets' and path[2] == 'transcript':
@@ -73,6 +76,11 @@ class Handler(BaseHTTPRequestHandler):
             with closing(db.connect(self.server.database)) as conn:
                 if path == ['assets']:
                     result = assets.register(conn, data['path'])
+                elif path == ['room-plans']:
+                    result = room_plan.create(conn,data['project_id'],data['stages'],data.get('dry',0),data.get('wet',1))
+                elif len(path)==3 and path[0]=='room-plans' and path[2] in ('render','audition'):
+                    result = room_render.render(conn,int(path[1]),data['destination'],
+                        data.get('at_sample',0),data.get('samples'),data.get('block_frames',4096))
                 elif path == ['noise-profiles']:
                     result = denoise_plan.profile(conn, data['asset_id'], data['start_ms'], data['end_ms'])
                 elif path == ['denoise-plans']:

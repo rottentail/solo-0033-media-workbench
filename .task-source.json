@@ -321,6 +321,15 @@
         "denoise_render.render"
       ],
       "available": true
+    },
+    {
+      "family": "测量房间响应与保尾音声学交付",
+      "occupied_by": [
+        "room_plan.create",
+        "room_signal.Matrix",
+        "room_render.render"
+      ],
+      "available": true
     }
   ],
   "extension_seams": [
@@ -421,6 +430,13 @@
       "entry": "POST /denoise-plans",
       "distinct_outcome": "冻结底噪功率后对节目连续降噪，保持声像、裁切增益以及任意中段试听与完整交付逐采样一致",
       "mechanism": "noise_power_stereo_mask_causal_overlap_add"
+    },
+    {
+      "id": "room-response",
+      "anchor": "room_plan.create",
+      "entry": "POST /room-plans",
+      "distinct_outcome": "有符号立体声传递矩阵、输入时刻空间过渡、完整反射尾音和精确切片",
+      "mechanism": "partitioned_time_varying_matrix_convolution"
     }
   ],
   "tension_points": [

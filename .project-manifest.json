@@ -213,6 +213,21 @@
       "id": "denoise_render",
       "path": "mediaworkbench/denoise_render.py",
       "responsibility": "原片单次解码、有界临时存储及精确片段试听交付"
+    },
+    {
+      "id": "room_plan",
+      "path": "mediaworkbench/room_plan.py",
+      "responsibility": "冻结四路测量响应与节目"
+    },
+    {
+      "id": "room_signal",
+      "path": "mediaworkbench/room_signal.py",
+      "responsibility": "输入时间域房间变换与分区矩阵卷积"
+    },
+    {
+      "id": "room_render",
+      "path": "mediaworkbench/room_render.py",
+      "responsibility": "有界单次解码和精确含尾音试听交付"
     }
   ],
   "workflows": [
