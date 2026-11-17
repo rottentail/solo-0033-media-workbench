@@ -52,7 +52,7 @@ def map_frame(linear, gain, white_nits):
     level = luminance * gain / white_nits
     # The shoulder is continuous with unit slope; ordinary middle tones stay linear.
     mapped = np.where(level <= .6, level,
-                      .6 + .4 * (1 - np.exp(-np.maximum(level - .6, 0) / .4)))
+                      .6 + .4 * np.maximum(level - .6, 0) / (.4 + np.maximum(level - .6, 0)))
     scaled = linear * (mapped / np.maximum(luminance, 1e-12))[..., None]
     direction = scaled - mapped[..., None]
     # Intersect the hue ray with the SDR cube while retaining its luminance.
