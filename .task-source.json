@@ -637,5 +637,13 @@
       "rolling_render"
     ],
     "contract": "body-clock row exposure inverse projection; frozen linear-light delivery"
+  },
+  "lens_calibration_capability": {
+    "modules": [
+      "lens_geometry",
+      "lens_plan",
+      "lens_render"
+    ],
+    "contract": "robust sensor-to-ideal radial/decentring calibration and certified inverse pixel support"
   }
 }
